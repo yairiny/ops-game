@@ -6,16 +6,16 @@
 (native!)
 
 (def ^{:private true
-       :doc "This is used for development purposes to facilitate restarting the frame"}
+       :doc "this is used for development purposes to facilitate restarting the frame"}
   main-frame (atom nil))
 
 (def ^{:private true
-       :doc "The action for exiting, currently disposes the main frame"}
+       :doc "the action for exiting, currently disposes the main frame"}
   exit-action (action :name "Exit" :key "menu X"
                       :handler (fn [_] (do (.dispose @main-frame) (destroy-graphics-panel)))))
 
 (defn- build-main-menu
-  "Builds the main menu"
+  "builds the main menu"
    []
   (menubar
    :items
@@ -27,7 +27,7 @@
   []  (flow-panel :preferred-size [0 :by 100]))
 
 (defn- init-main-frame
-  "Initialises and displays the main window, maximised.  Also handles storing in the atom,
+  "initialises and displays the main window, maximised.  Also handles storing in the atom,
 in order to facilitate easy development without restarting"
   []
   (let [frm (frame
@@ -36,7 +36,7 @@ in order to facilitate easy development without restarting"
              :pack? true
              :menubar (build-main-menu)
              :content (border-panel
-                       :center (create-graphics-panel)
+                       :center (create-graphics-panel :draw draw-func)
                        :south (init-status-panel)))]
     (.setExtendedState frm (bit-or (.getExtendedState frm) Frame/MAXIMIZED_BOTH))
     (if @main-frame (.dispose @main-frame))

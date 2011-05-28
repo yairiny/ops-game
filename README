@@ -1,13 +1,3 @@
 # ops-game
 
-FIXME: write description
-
-## Usage
-
-FIXME: write
-
-## License
-
-Copyright (C) 2010 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+This is a self-exploratory board game using clojure and processing

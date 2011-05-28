@@ -3,6 +3,7 @@
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [seesaw "1.0.2"]
-                 [org.clojars.automata/rosado.processing "1.1.0"]]
-  :dev-dependencies [[marginalia "0.5.1"]])
+                 [processing "1.5.1"]]
+  :dev-dependencies [[marginalia "0.5.1"]
+                     [swank-clojure "1.3.1"]])
 

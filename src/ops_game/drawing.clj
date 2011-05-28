@@ -1,8 +1,9 @@
 (ns ops-game.drawing
   (:require [ops-game.data :as data])
   (:use [ops-game.drawing data])
-  (:use [rosado.processing])
-  (:import [java.awt Polygon]))
+  (:use [ops-game.processing])
+  (:import [java.awt Polygon]
+           [processing.core PApplet]))
 
 (def ^{:private true
        :doc "the length of a hex side"}
@@ -10,11 +11,11 @@
 
 (def ^{:private true
        :doc "the horizontal pixel difference factor"}
-  *xdiff* (* (sin (radians 30)) *side*))
+  *xdiff* (* (PApplet/sin (PApplet/radians 30)) *side*))
 
 (def ^{:private true
       :doc "the vertical pixel difference factor"}
-  *ydiff* (* (cos (radians 30)) *side*))
+  *ydiff* (* (PApplet/cos (PApplet/radians 30)) *side*))
 
 (def ^{:private true
       :doc "the x margin"}
@@ -47,56 +48,53 @@
     (doseq [[x y] vertices] (.addPoint p x y))
     p))
 
-(comment (defn coord-to-hex
-   "returns a [row col] for the given coordinates"
-   [x y]
-   (let [p (vertices-polygon hex-vertices)
-         map-data (:map (data/get-drawing-data))
-         positions (for [r (range (count map-data)) c (range (count (first map-data)))] [r c])]
-     (filter
+(defn- coord-to-hex-impl
+  "returns a [row col] for the given coordinates"
+  [x y]
+  (let [p (vertices-polygon hex-vertices)
+        map-data (:map (data/get-drawing-data))
+        positions (for [r (range (count map-data)) c (range (count (first map-data)))] [r c])]
+    (first (filter
       (fn [[row col]]
         (let [[px py] (get-hex-centre row col)
               [x* y*] [(- x px) (- y py)]]
           (.contains p (double x*) (double y*)))) positions))))
 
-(defn coord-to-hex [x y] [4 5])
+(def coord-to-hex (memoize coord-to-hex-impl))
 
-(defn setup []
-  (size 2000 2000)
-  (smooth)
-  (no-loop)
-  )
+(defn setup [applet]
+  (.size applet 400 400)
+  (.smooth applet)
+  (.noLoop applet))
 
 (defn- draw-hex
   "draws a hex on the map"
-  [row col fill-colour highlight?]
-  (apply fill (if highlight? (drop-last fill-colour) fill-colour))
-  (push-matrix)
-  (apply translate (get-hex-centre row col))
-  (begin-shape)
+  [applet row col fill-colour highlight?]
+  (apply fill applet (if highlight? (drop-last fill-colour) fill-colour))
+  (.pushMatrix applet)
+  (apply translate applet (get-hex-centre row col))
+  (.beginShape applet)
   (doseq [v hex-vertices]
-    (apply vertex v))
-  (end-shape CLOSE)
-  (pop-matrix)
-  (no-fill))
+    (apply vertex applet v))
+  (.endShape applet PApplet/CLOSE)
+  (.popMatrix applet)
+  (.noFill applet))
 
 (defn- draw-map
   "draws the game map layer"
-  [map-data highlight]
-  (println "highlight" highlight)
+  [applet map-data highlight]
   (doseq [[r row] (map #(vector %1 %2) (range) map-data)]
     (doseq [[c hex-type] (map #(vector %1 %2) (range) row)]
-      (draw-hex r c (:colour (hex-type terrain-info)) (= highlight [r c])))))
+      (draw-hex applet r c (:colour (hex-type terrain-info)) (= highlight [r c])))))
 
-(defn draw "draws the game panel" []
-  (println "drawing")
-  (push-matrix)
-  (background 255)
-  (no-fill)
+(defn draw "draws the game panel" [applet]
+  (.pushMatrix applet)
+  (.background applet 255)
+  (.noFill applet)
   (let [game-data (data/get-drawing-data)]
-    (draw-map (:map game-data) (:highlight game-data)))
-  (fill 0)
-  (pop-matrix))
+    (draw-map applet (:map game-data) (:highlight game-data)))
+  (.fill applet 0)
+  (.popMatrix applet))
 
-(defn redraw-panel "redraws the game panel" []
-  (redraw))
+(defn redraw "redraws the game panel" [applet]
+  (.redraw applet))

@@ -40,8 +40,9 @@
       (.popStyle ~applet)
       (.popMatrix ~applet)))
 
-(defn make-shape-with-vertices [applet kind vertices]
+(defn make-shape-with-vertices
   "makes a shape with the given 2d vertices sequence.  kind is one of the endShape parameters"
+  [applet kind vertices]
   (.beginShape applet)
   (doseq [v vertices]
     (apply vertex applet v))

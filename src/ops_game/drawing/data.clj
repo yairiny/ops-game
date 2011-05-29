@@ -6,3 +6,9 @@
    :plain {:colour [234 204 92 128]}
    :woods {:colour [92 219 91 128]}
    :forest {:colour [5 95 4 128]}})
+
+(def unit-info
+  {:hq {:colour [185 198 0]}
+   :infantry {:colour [77 185 198]}
+   :machine-gun {:colour [77 185 198]}
+   :mortar {:colour [77 185 198]}})

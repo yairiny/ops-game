@@ -1,9 +1,10 @@
 (ns ops-game.swing-ui
   (:use [ops-game.processing]
-        [ops-game.data :only [update-hex-under-cursor update-hex-clicked]]
+        [ops-game.data :only [update-hex-under-cursor update-hex-clicked update-unit-selected move-selected-unit]]
         [ops-game.drawing :only [draw setup coord-to-hex redraw]]
         [seesaw core])
-  (:import [java.awt Frame BorderLayout]))
+  (:import [java.awt Frame BorderLayout]
+           [java.awt.event MouseEvent]))
 
 (native!)
 
@@ -29,16 +30,22 @@
   "creates the panel which is used to display status text"
   []  (flow-panel :preferred-size [0 :by 100]))
 
-(defn mouse-moved [applet evt]
+(defn mouse-moved
   "callback function for when the mouse is moved"
+  [applet evt]
   (let [{x :x y :y} (bean evt)]
     (update-hex-under-cursor (coord-to-hex x y)))
   (redraw applet))
 
-(defn mouse-clicked [applet evt]
+(defn mouse-clicked
   "callback function for when the mouse is clicked"
-  (let [{x :x y :y} (bean evt)]
-    (update-hex-clicked (coord-to-hex x y)))
+  [applet evt]
+  (let [{:keys [x y button]} (bean evt)
+        loc (coord-to-hex x y)]
+    (if (= button MouseEvent/BUTTON1)
+      (do (update-hex-clicked loc)
+          (update-unit-selected loc))
+      (move-selected-unit loc)))
   (redraw applet))
 
 (defn- init-main-frame

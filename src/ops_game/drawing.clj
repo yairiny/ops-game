@@ -78,9 +78,8 @@
   (.background applet 255)
   (.smooth applet)
   (.noLoop applet)
-  (.loadShape applet "infantry.svg")
   (let [font (.loadFont applet "Consolas.vlw")]
-    (.textFont applet font (int (/ *side* 5)))))
+    (.textFont applet font (inc (int (/ *side* 5))))))
 
 (defn- translate-to-loc
   "causes a translation to a map location"
@@ -104,24 +103,45 @@
       (draw-hex applet r c (:colour (hex-type terrain-info))
                 (= highlight [r c]) (= clicked [r c])))))
 
+(def ^{:private true} *pip-width* 4)
+(def ^{:private true} *pip-height* 3)
+
+(defn- draw-pips
+  "draws the strength pips for a single unit"
+  [applet [full-strength curr-strength] left-offset top-offset]
+  (with-pushed-matrix-and-style applet
+    (let [left (+ left-offset 2) top (+ top-offset 2)]
+      (doseq [step (map #(< % curr-strength) (range full-strength))]
+        (apply fill applet (if step [0 255 0] [0]))
+        (.rect applet left top *pip-width* *pip-height*)
+        (translate applet 0 (+ *pip-height* 2))))))
+
 (defn- draw-unit
   "draws a unit on the map"
-  [applet {:keys [location type name]} selected?]
+  [applet {:keys [location type name strength]} selected? draw-offsets?]
   (with-pushed-matrix-and-style applet
+    (println name)
     (apply translate-to-loc applet location)
     (let [base-colour (:colour (unit-info type))
           colour (if selected? (conj base-colour 128) base-colour)]
       (apply fill applet colour))
     (let [l (/ *ydiff* 1.5)]
+      (when draw-offsets?
+        (translate applet 2 2)
+        (.rect applet (- l) (- l) (* 2 l) (* 2 l))
+        (translate applet -2 -2))
       (.rect applet (- l) (- l) (* 2 l) (* 2 l))
       (fill applet 0)
-      (.text applet name (float (- l)) (float (- l 2))))))
+      (.text applet name (float (- l)) (float (- l 2)))
+      (draw-pips applet strength (- l) (- l))
+      )))
 
 (defn- draw-units
-  "draws the units on the map"
-  [applet units selected]
-  (doseq [unit units]
-    (draw-unit applet unit (= unit selected))))
+  "draws the units on the map, in each location, only the last unit in the list gets drawn"
+  [applet units-map selected]
+  (doseq [[loc units] units-map]
+    (let [unit (last units)]
+      (draw-unit applet unit (= unit selected) (> (count units) 1)))))
 
 (defn draw "draws the game panel" [applet]
   (try

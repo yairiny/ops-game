@@ -9,6 +9,6 @@
 
 (def unit-info
   {:hq {:colour [185 198 0]}
-   :infantry {:colour [77 185 198]}
-   :machine-gun {:colour [77 185 198]}
-   :mortar {:colour [77 185 198]}})
+   :infantry {:colour [185 198 0]}
+   :machine-gun {:colour [185 198 0]}
+   :mortar {:colour [185 198 0]}})

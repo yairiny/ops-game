@@ -1,5 +1,6 @@
 (ns ops-game.drawing
   (:require [ops-game.data :as data])
+  (:require [clojure.string])
   (:use [ops-game.drawing data])
   (:use [ops-game.processing])
   (:import [java.awt Polygon]
@@ -7,42 +8,43 @@
 
 (def ^{:private true
        :doc "the length of a hex side"}
-  *side* 40)
+  *side* 33)
 
 (def ^{:private true
-       :doc "the horizontal pixel difference factor"}
-  *xdiff* (* (PApplet/sin (PApplet/radians 30)) *side*))
+       :doc "the vertical pixel difference factor"}
+  *ydiff* (* (PApplet/sin (PApplet/radians 30)) *side*))
 
 (def ^{:private true
-      :doc "the vertical pixel difference factor"}
-  *ydiff* (* (PApplet/cos (PApplet/radians 30)) *side*))
+      :doc "the horizontal pixel difference factor"}
+  *xdiff* (* (PApplet/cos (PApplet/radians 30)) *side*))
 
 (def ^{:private true
       :doc "the x margin"}
-  *xmarg* (+ 5 *side*))
+  *xmarg* *side*)
 
 (def ^{:private true
       :doc "the y margin"}
-  *ymarg* (+ 10 *ydiff*))
+  *ymarg* (+ 5 *side*))
 
 (defn- get-hex-centre-impl
   "gets the pixel coordinate centre of a hex by row and column"
   [row col]
-  (let [x (* (int (/ col 2)) 3 *side*) y (* row 2 *ydiff*)]
+  (let [x (* 2 col *xdiff*) y (* (/ row 2) 3 *side*)]
     (let [x* (+ x *xmarg*) y* (+ y *ymarg*)]
-      (if (even? col) [x* y*] [(+ x* *side* *xdiff*) (+ y* *ydiff*)]))))
+      (if (even? row) [x* y*]
+          [(+ x* *xdiff*) (+ y* )]))))
 
 (defonce ^{:private true :doc "memoization of get-hex-centre"}
   get-hex-centre (memoize get-hex-centre-impl))
 
 (def ^{:private true
        :doc "the vertices that compose a hex"}
-  hex-vertices [[(- *xdiff*) (- *ydiff*)]
+  hex-vertices [[0 (- *side*)]
                 [*xdiff* (- *ydiff*)]
-                [*side* 0]
                 [*xdiff* *ydiff*]
+                [0 *side*]
                 [(- *xdiff*) *ydiff*]
-                [(- *side*) 0]])
+                [(- *xdiff*) (- *ydiff*)]])
 
 (defn- vertices-polygon
   "creates a java.awt.Polygon from a sequence of vertices"
@@ -120,28 +122,30 @@
   "draws a unit on the map"
   [applet {:keys [location type name strength]} selected? draw-offsets?]
   (with-pushed-matrix-and-style applet
-    (println name)
     (apply translate-to-loc applet location)
     (let [base-colour (:colour (unit-info type))
           colour (if selected? (conj base-colour 128) base-colour)]
       (apply fill applet colour))
-    (let [l (/ *ydiff* 1.5)]
+    (let [l (/ *xdiff* 1.5)]
       (when draw-offsets?
         (translate applet 2 2)
         (.rect applet (- l) (- l) (* 2 l) (* 2 l))
         (translate applet -2 -2))
       (.rect applet (- l) (- l) (* 2 l) (* 2 l))
       (fill applet 0)
-      (.text applet name (float (- l)) (float (- l 2)))
-      (draw-pips applet strength (- l) (- l))
-      )))
+      (let [[t1 t2] (clojure.string/split name #"\s")]
+        (.text applet t1 (float (- l)) (float (- l 9)))
+        (.text applet t2 (float (- l)) (float (- l 1))))
+      (draw-pips applet strength (- l) (- l)))))
 
 (defn- draw-units
   "draws the units on the map, in each location, only the last unit in the list gets drawn"
-  [applet units-map selected]
-  (doseq [[loc units] units-map]
-    (let [unit (last units)]
-      (draw-unit applet unit (= unit selected) (> (count units) 1)))))
+  [applet {:keys [units locs selected-unit]}]
+  (doseq [[loc units-at-loc] locs]
+    (let [top-id (:top units-at-loc)
+          all-ids (:units units-at-loc)]
+      (if top-id
+        (draw-unit applet (units top-id) (= top-id selected-unit) (> (count all-ids) 1))))))
 
 (defn draw "draws the game panel" [applet]
   (try
@@ -149,7 +153,7 @@
     (with-pushed-matrix-and-style applet
       (let [game-data (data/get-drawing-data)]
         (draw-map applet (:map game-data) (:highlight game-data) (:clicked game-data))
-        (draw-units applet (:units game-data) (:selected-unit game-data))))
+        (draw-units applet game-data)))
     (catch Exception e (.printStackTrace e))))
 
 (defn redraw "redraws the game panel" [applet]

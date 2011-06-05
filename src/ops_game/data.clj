@@ -5,7 +5,7 @@
   terrain-info
   {:urban {}
    :village {}
-   :plain {}
+   :plain {:cost 1}
    :woods {}
    :forest {}})
 
@@ -33,15 +33,29 @@
    (map #(make-inf-platoon coy %) (range 1 4))))
 
 (def ^{:private true
-       :doc "the units list"}
+       :doc "the units, mapped from their ID"}
   units
-  (let [unit-seq
-        (concat [(make-unit :hq "2/505 HQ" "2/505 HQ" 15 1)
-                  (make-unit :machine-gun "2/505 MG Platoon" "2/505 MG" 8 2)
-                  (make-unit :mortar "2/505 Mortar Platoon" "2/505 Mtr" 8 2)]
-                (mapcat make-rifle-company "DEF"))
-        units-by-loc (partition-by :location (sort-by :location unit-seq))]
-    (atom (reduce #(assoc %1 (:location (first %2)) %2) {} units-by-loc))))
+  (atom (into {} (map vector
+                      (iterate inc 100)
+                      (concat [(make-unit :hq "2/505 HQ" "2/505 HQ" 15 1)
+                               (make-unit :machine-gun "2/505 MG Platoon" "2/505 MG" 8 2)
+                               (make-unit :mortar "2/505 Mortar Platoon" "2/505 Mtr" 8 2)]
+                              (mapcat make-rifle-company "DEF"))))))
+
+(defn- make-units-by-loc
+  "turns a unit map into a map from location to units"
+  [units-map]
+  (let [ids-and-locs (map vector (map :location (vals units-map)) (keys units-map))
+        loc-groups (partition-by first (sort-by first ids-and-locs))
+        mapped-by-loc (map #(vector (-> % first first)
+                                    {:top (-> % first second)
+                                     :units (apply sorted-set (map second %))}) loc-groups)]
+    (into {} mapped-by-loc)))
+
+(def ^{:private true
+       :doc "the location to unit ids map"}
+  units-by-loc
+  (atom (make-units-by-loc @units)))
 
 (def ^{:private true
        :doc "the selected unit"}
@@ -68,32 +82,41 @@
 (defn update-unit-selected
   "updates the selected unit"
   [loc]
-  (let [loc-units (@units loc)
-        unit-shown (last loc-units)
-        old-selected @selected-unit]
+  (let [loc-units (@units-by-loc loc)
+        top (:top loc-units)
+        old-selected (@units @selected-unit)]
     (if (and old-selected (= loc (:location old-selected)))
-      (let [loc-units (cons old-selected (butlast loc-units)) ;old in front
-            unit-shown (last loc-units)]
-        (reset! units (assoc @units loc loc-units))
-        (reset! selected-unit unit-shown))
-      (reset! selected-unit unit-shown))))
+      (let [next-top (second (drop-while #(not= top %) (cycle (:units loc-units))))]
+        (reset! units-by-loc (assoc-in @units-by-loc [loc :top] next-top))
+        (reset! selected-unit next-top))
+      (reset! selected-unit top))))
 
 (defn get-drawing-data
   "returns the data that is needed for drawing"
   [] {:map game-map
       :highlight @hex-under-cursor :clicked @hex-clicked
-      :units @units :selected-unit @selected-unit})
+      :units @units :locs @units-by-loc :selected-unit @selected-unit})
+
+(defn- get-adjacent
+  "gets the vector of adjacent hexes"
+  [loc]
+  (let [[row col] loc]
+    (if (even? col)
+      []
+      [])))
 
 (defn move-selected-unit
   "moves the selected unit (if any) to the specified location"
   [loc]
   (if @selected-unit
-    (let [old-loc (:location @selected-unit)
-          updated-unit (assoc @selected-unit :location loc)
-          old-loc-units (vec (butlast (@units old-loc)))
-          new-loc-units (conj (vec (@units loc)) updated-unit)
-          new-units (assoc @units loc new-loc-units)]
-      (if (empty? old-loc-units)
-        (reset! units (dissoc new-units old-loc))
-        (reset! units (assoc new-units old-loc old-loc-units)))
-      (reset! selected-unit nil))))
+    (let [old-loc (:location (@units @selected-unit))]
+      (reset! units (assoc-in @units [@selected-unit :location] loc))
+      (let [locs-map (-> (if (@units-by-loc loc)
+                           @units-by-loc
+                           (assoc @units-by-loc loc {:top nil :units (sorted-set)}))
+                         (update-in [old-loc :units] disj @selected-unit)
+                         (update-in [loc :units] conj @selected-unit))]
+        (reset! units-by-loc (-> locs-map
+                                  (assoc-in [old-loc :top]
+                                            (first (get-in locs-map [old-loc :units])))
+                                  (assoc-in [loc :top] @selected-unit)))))))

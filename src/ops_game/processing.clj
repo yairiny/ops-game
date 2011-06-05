@@ -35,8 +35,10 @@
   "performs the body wrapped in pushing matrix and style and then popping them"
   [applet & body]
   `(do (.pushMatrix ~applet)
-      (.pushStyle ~applet)
-      ~@body
+       (.pushStyle ~applet)
+       (try
+         ~@body
+         (catch Exception e# (.printStackTrace e#)))
       (.popStyle ~applet)
       (.popMatrix ~applet)))
 

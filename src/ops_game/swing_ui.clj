@@ -1,6 +1,7 @@
 (ns ops-game.swing-ui
   (:use [ops-game.processing]
-        [ops-game.data :only [update-hex-under-cursor update-hex-clicked update-unit-selected move-selected-unit]]
+        [ops-game.data :only [update-hex-under-cursor update-hex-clicked update-unit-selected
+                              move-selected-unit get-status-data]]
         [ops-game.drawing :only [draw setup coord-to-hex redraw]]
         [seesaw core])
   (:import [java.awt Frame BorderLayout]
@@ -19,23 +20,72 @@
 
 (defn- build-main-menu
   "builds the main menu"
-  []
-  (menubar
-   :items
-   [(menu :text "File"
-          :items [exit-action]
-          )]))
+  [] (menubar :items [(menu :text "File" :items [exit-action])]))
 
-(defn- init-status-panel
+(defn- status-label "creates a label with our font"
+  [text] (label :font "INCONSOLATA-12" :text text))
+
+(def ^{:private true :doc "the labels that need to change for the various status displays"}
+  status-labels
+  (let [def-unit-text "no unit selected"]
+    {:unit-name (status-label def-unit-text)
+     :unit-strength (status-label def-unit-text)
+     :unit-movement (status-label def-unit-text)
+     :unit-type (status-label def-unit-text)
+     :terrain-type (status-label "no terrain under cursor")}))
+
+(defn- unit-status-panel
+  "creates the unit status panel"
+  [] (grid-panel :columns 2
+                 :items [(status-label "Selected Unit Information") ""
+                         (status-label "Name:") (:unit-name status-labels)
+                         (status-label "Strength:") (:unit-strength status-labels)
+                         (status-label "Movement:") (:unit-movement status-labels)
+                         (status-label "Type:") (:unit-type status-labels)]))
+
+(defn- terrain-status-panel
+  "creates the terrain status panel"
+  [] (grid-panel :columns 2
+                 :items [(status-label "Highlighted Terrain Information") ""
+                         (status-label "Type:") (:terrain-type status-labels)]))
+
+(defn- status-panel
   "creates the panel which is used to display status text"
-  []  (flow-panel :preferred-size [0 :by 100]))
+  []  (flow-panel :preferred-size [0 :by 100]
+                  :items [(unit-status-panel) (terrain-status-panel)]))
+
+(defn- update-unit-status-panel
+  "updates the unit status panel"
+  [status]
+  (let [{:keys [unit-name unit-strength unit-movement unit-type]} status-labels]
+    (if-let [unit (:selected-unit status)]
+      (let [{type :type name :full-name movement :movement strength :strength} unit]
+        (text! unit-name name)
+        (text! unit-type (str type))
+        (text! unit-movement (str movement))
+        (text! unit-strength (str strength)))
+      (doseq [t [unit-name unit-type unit-movement unit-strength]] (text! t "No unit selected")))))
+
+(defn- update-terrain-status-panel
+  "updates the terrain status panel"
+  [status]
+  (let [{:keys [highlighted-hex-type]} status]
+    (text! (:terrain-type status-labels) (str highlighted-hex-type))))
+
+(defn- update-status-panel
+  "updates the status panel"
+  [] (invoke-later
+      (let [status (get-status-data)]
+        (update-unit-status-panel status)
+        (update-terrain-status-panel status))))
 
 (defn mouse-moved
   "callback function for when the mouse is moved"
   [applet evt]
   (let [{x :x y :y} (bean evt)]
     (update-hex-under-cursor (coord-to-hex x y)))
-  (redraw applet))
+  (redraw applet)
+  (update-status-panel))
 
 (defn mouse-clicked
   "callback function for when the mouse is clicked"
@@ -46,7 +96,8 @@
       (do (update-hex-clicked loc)
           (update-unit-selected loc))
       (move-selected-unit loc)))
-  (redraw applet))
+  (redraw applet)
+  (update-status-panel))
 
 (defn- init-main-frame
   "initialises and displays the main window, maximised.  Also handles storing in the atom,
@@ -60,11 +111,11 @@ in order to facilitate easy development without restarting"
         frm (frame
              :title "CMBN Operational Layer"
              :on-close :dispose
-             :pack? false
              :menubar (build-main-menu)
              :content (border-panel
-                       :south (init-status-panel)))]
+                       :south (status-panel)))]
     (.setExtendedState frm (bit-or (.getExtendedState frm) Frame/MAXIMIZED_BOTH))
     (.add frm applet BorderLayout/CENTER)
     (if @main-frame (.dispose @main-frame))
-    (reset! main-frame frm)))
+    (reset! main-frame frm)
+    (show! frm)))

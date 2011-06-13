@@ -97,6 +97,12 @@
       :highlight @hex-under-cursor :clicked @hex-clicked
       :units @units :locs @units-by-loc :selected-unit @selected-unit})
 
+(defn get-status-data
+  "returns the information about the hex under the cursor and the selected unit"
+  [] {:highlighted-hex-type (when @hex-under-cursor (get-in game-map @hex-under-cursor))
+      :highlighted-hex-loc @hex-under-cursor
+      :selected-unit (@units @selected-unit)})
+
 (defn- get-adjacent
   "gets the vector of adjacent hexes"
   [loc]

@@ -27,12 +27,14 @@
 
 (def ^{:private true :doc "the labels that need to change for the various status displays"}
   status-labels
-  (let [def-unit-text "no unit selected"]
+  (let [def-unit-text "no unit selected"
+        def-terrain-text "no terrain under cursor"]
     {:unit-name (status-label def-unit-text)
      :unit-strength (status-label def-unit-text)
      :unit-movement (status-label def-unit-text)
      :unit-type (status-label def-unit-text)
-     :terrain-type (status-label "no terrain under cursor")}))
+     :terrain-type (status-label def-terrain-text)
+     :terrain-cost (status-label def-terrain-text)}))
 
 (defn- unit-status-panel
   "creates the unit status panel"
@@ -47,7 +49,8 @@
   "creates the terrain status panel"
   [] (grid-panel :columns 2
                  :items [(status-label "Highlighted Terrain Information") ""
-                         (status-label "Type:") (:terrain-type status-labels)]))
+                         (status-label "Type:") (:terrain-type status-labels)
+                         (status-label "Movememnt cost:") (:terrain-cost status-labels)]))
 
 (defn- status-panel
   "creates the panel which is used to display status text"
@@ -69,8 +72,9 @@
 (defn- update-terrain-status-panel
   "updates the terrain status panel"
   [status]
-  (let [{:keys [highlighted-hex-type]} status]
-    (text! (:terrain-type status-labels) (str highlighted-hex-type))))
+  (let [{:keys [highlighted-hex-type highlighted-hex-cost]} status]
+    (text! (:terrain-type status-labels) (name highlighted-hex-type))
+    (text! (:terrain-cost status-labels) (str highlighted-hex-cost))))
 
 (defn- update-status-panel
   "updates the status panel"

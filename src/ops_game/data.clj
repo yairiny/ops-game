@@ -3,11 +3,11 @@
 (def ^{:private true
        :doc "the terrain game info"}
   terrain-info
-  {:urban {}
-   :village {}
+  {:urban {:cost 3}
+   :village {:cost 2}
    :plain {:cost 1}
-   :woods {}
-   :forest {}})
+   :woods {:cost 3}
+   :forest {:cost 4}})
 
 (def ^{:private true
        :doc "the game map"}
@@ -99,9 +99,11 @@
 
 (defn get-status-data
   "returns the information about the hex under the cursor and the selected unit"
-  [] {:highlighted-hex-type (when @hex-under-cursor (get-in game-map @hex-under-cursor))
-      :highlighted-hex-loc @hex-under-cursor
-      :selected-unit (@units @selected-unit)})
+  [] (let [hex-type (when @hex-under-cursor (get-in game-map @hex-under-cursor))]
+       {:highlighted-hex-type hex-type
+        :highlighted-hex-loc @hex-under-cursor
+        :highlighted-hex-cost (-> terrain-info hex-type :cost)
+        :selected-unit (@units @selected-unit)}))
 
 (defn- get-adjacent
   "gets the vector of adjacent hexes"
@@ -117,18 +119,39 @@
                        [[(dec row) (inc col)] [(inc row) (inc col)]])))]
     (filter (fn [[row col]] (and (>= row 0) (>= col 0) (<= row num-rows) (<= col num-cols))) all-adj)))
 
+(defn- move-unit "helper function to move a unit from one location to another"
+  [unit from to]
+  (reset! units (assoc-in @units [unit :location] to))
+  (let [locs-map (-> (if (@units-by-loc to)
+                       @units-by-loc
+                       (assoc @units-by-loc to {:top nil :units (sorted-set)}))
+                     (update-in [from :units] disj unit)
+                     (update-in [to :units] conj unit))]
+    (reset! units-by-loc (-> locs-map
+                             (assoc-in [from :top]
+                                       (first (get-in locs-map [from :units])))
+                             (assoc-in [to :top] unit)))))
+
+(defn- calc-move-cost
+  [from to]
+  (-> (get-in game-map to) terrain-info :cost))
+
+(defn- can-unit-move?
+  [unit from to]
+  (let [unit (@units unit)]
+    (and (some #{to}  (get-adjacent from))
+         (>= (second (:movement unit)) (calc-move-cost from to)))))
+
+(defn- update-move-cost
+  "updates the movement cost for this unit"
+  [unit from to]
+  (reset! units (update-in @units [unit :movement] (fn [[a b]] [a (- b (calc-move-cost from to))]))))
+
 (defn move-selected-unit
   "moves the selected unit (if any) to the specified location"
   [loc]
   (if @selected-unit
     (let [old-loc (:location (@units @selected-unit))]
-      (reset! units (assoc-in @units [@selected-unit :location] loc))
-      (let [locs-map (-> (if (@units-by-loc loc)
-                           @units-by-loc
-                           (assoc @units-by-loc loc {:top nil :units (sorted-set)}))
-                         (update-in [old-loc :units] disj @selected-unit)
-                         (update-in [loc :units] conj @selected-unit))]
-        (reset! units-by-loc (-> locs-map
-                                  (assoc-in [old-loc :top]
-                                            (first (get-in locs-map [old-loc :units])))
-                                  (assoc-in [loc :top] @selected-unit)))))))
+      (if (can-unit-move? @selected-unit old-loc loc)
+        (do (move-unit @selected-unit old-loc loc)
+            (update-move-cost @selected-unit old-loc loc))))))

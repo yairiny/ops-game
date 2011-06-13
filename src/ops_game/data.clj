@@ -102,7 +102,7 @@
   [] (let [hex-type (when @hex-under-cursor (get-in game-map @hex-under-cursor))]
        {:highlighted-hex-type hex-type
         :highlighted-hex-loc @hex-under-cursor
-        :highlighted-hex-cost (-> terrain-info hex-type :cost)
+        :highlighted-hex-cost (-> hex-type terrain-info :cost)
         :selected-unit (@units @selected-unit)}))
 
 (defn- get-adjacent

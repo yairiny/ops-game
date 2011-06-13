@@ -73,7 +73,7 @@
   "updates the terrain status panel"
   [status]
   (let [{:keys [highlighted-hex-type highlighted-hex-cost]} status]
-    (text! (:terrain-type status-labels) (name highlighted-hex-type))
+    (text! (:terrain-type status-labels) (when highlighted-hex-type (name highlighted-hex-type)))
     (text! (:terrain-cost status-labels) (str highlighted-hex-cost))))
 
 (defn- update-status-panel

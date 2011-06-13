@@ -51,6 +51,8 @@
     (data/update-unit-selected [1 1])
     (assert-selected (= 100))))
 
+(deftest)
+
 (deftest clicking-a-hex
   (is (nil? @@#'data/hex-clicked))
   (update-hex-clicked [1 1])

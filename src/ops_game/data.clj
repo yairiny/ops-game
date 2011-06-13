@@ -100,10 +100,16 @@
 (defn- get-adjacent
   "gets the vector of adjacent hexes"
   [loc]
-  (let [[row col] loc]
-    (if (even? col)
-      []
-      [])))
+  (let [[row col] loc
+        num-rows (count game-map)
+        num-cols (count (first game-map))
+        adj [[(dec row) col] [row (dec col)] [row (inc col)] [(inc row) col]]
+        all-adj
+        (vec
+         (concat adj (if (even? row)
+                       [[(dec row) (dec col)] [(inc row) (dec col)]]
+                       [[(dec row) (inc col)] [(inc row) (inc col)]])))]
+    (filter (fn [[row col]] (and (>= row 0) (>= col 0) (<= row num-rows) (<= col num-cols))) all-adj)))
 
 (defn move-selected-unit
   "moves the selected unit (if any) to the specified location"

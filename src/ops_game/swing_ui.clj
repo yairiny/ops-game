@@ -63,7 +63,6 @@ in order to facilitate easy development without restarting"
              :pack? false
              :menubar (build-main-menu)
              :content (border-panel
-                       ;:center applet
                        :south (init-status-panel)))]
     (.setExtendedState frm (bit-or (.getExtendedState frm) Frame/MAXIMIZED_BOTH))
     (.add frm applet BorderLayout/CENTER)

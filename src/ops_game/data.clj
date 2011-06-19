@@ -1,4 +1,5 @@
-(ns ops-game.data)
+(ns ops-game.data
+  (:use ops-game.data.unit-dsl))
 
 (def ^{:private true :doc "the turns left sequence"}
   turns (atom (for [t (range) s [:allies :axis]] [t s])))
@@ -24,33 +25,40 @@
    [:woods :woods :woods :woods :plain :plain :urban :urban]
    [:plain :plain :plain :plain :plain :urban :urban :urban]])
 
-(defn- make-unit [type full-name name movement strength side]
-  {:type type :full-name full-name :name name :movement [movement movement] :strength [strength strength] :location [(rand-int 5) (rand-int 5)] :side side})
-
-(defn- make-inf-platoon [coy num nation side]
-  (make-unit [nation :infantry] (format "%d/%s Platoon" num coy) (format "%d/%s Pl" num coy) 8 4 side))
-
-(defn- make-pir-rifle-company [coy]
-  (cons
-   (make-unit [:us :hq] (format "%s Company HQ" coy) (format "%s Coy" coy) 8 1 :allies)
-   (map #(make-inf-platoon coy % :us :allies) (range 1 4))))
+(defn- make-pir-rifle-company [letter]
+  (unit (str letter " Infantry Company") :us :foot-hq
+        (map #(unit (format "%d/%s Infantry Platoon" % letter) :us :foot-infantry) [1 2 3])))
 
 (defn- make-pir-battalion []
-  (concat [(make-unit [:us :hq] "2/505 HQ" "2/505 HQ" 8 1 :allies)
-           (make-unit [:us :machine-gun] "2/505 MG Platoon" "2/505 MG" 8 2 :allies)
-           (make-unit [:us :engineer] "2/505 Eng Platoon" "2/505 Eng" 8 3 :allies)
-           (make-unit [:us :mortar] "2/505 Mortar Platoon" "2/505 Mtr" 6 2 :allies)]
-          (mapcat make-pir-rifle-company "DEF")))
+  (unit "2/505 Battalion HQ" :us :foot-hq
+        [(unit "2/505 Machine Gun Platoon" :us :foot-support {:type [:us :machine-gun]})
+         (unit "2/505 Eng Platoon" :us :foot-engineer)
+         (unit "2/505 Medium Mortar Platoon (81mm)" :us :foot-support {:type [:us :mortar]})
+         (map make-pir-rifle-company "DEF")]))
 
-(defn- make-ger-grenadier-battalion []
-  (concat [(make-unit [:germany :hq] "II/916 HQ" "II/916 HQ" 15 1 :axis)]))
+(defn- make-german-infantry-company [number]
+  (unit (str number " Infanterie Kompanie") :germany :foot-hq
+        (map #(unit (format "%d.%d Infanterie Zug"number %) :germany :foot-infantry) [1 2 3])))
+
+(defn- make-german-grenadier-battalion []
+  (unit "II/916 Infanterie Battalion HQ" :germany :motorised-hq
+        [(unit "4 Heavy Kompanie" :germany :foot-hq
+               [(unit "4/Machine Gun Zug" :germany :foot-support {:type [:germany :machine-gun]})
+                (unit "4/Medium Mortar Zug (8cm)" :germany :foot-support {:type [:germany :mortar]})
+                (unit "4/Heavy Mortar Zug (12cm)" :germany :motorised-support {:type [:germany :mortar]})])
+         (map make-german-infantry-company [5 6 7])]))
+
+(defn- make-random-units []
+  (map #(merge % {:location [(rand-int 6) (rand-int 6)]})
+       (concat (side :allies (make-pir-battalion))
+               (side :axis (make-german-grenadier-battalion)))))
 
 (def ^{:private true
        :doc "the units, mapped from their ID"}
   units
   (atom (into {} (map vector
                       (iterate inc 100)
-                      (concat (make-pir-battalion) (make-ger-grenadier-battalion))))))
+                      (make-random-units)))))
 
 (defn- make-units-by-loc
   "turns a unit map into a map from location to units"

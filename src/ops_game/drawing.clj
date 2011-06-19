@@ -133,9 +133,9 @@
         (translate applet -2 -2))
       (.rect applet (- l) (- l) (* 2 l) (* 2 l))
       (fill applet 0)
-      (let [[t1 t2] (clojure.string/split name #"\s")]
+      (let [[t1 & t2] (clojure.string/split name #"\s")]
         (.text applet t1 (float (- l)) (float (- l 9)))
-        (.text applet t2 (float (- l)) (float (- l 1))))
+        (.text applet (clojure.string/join " " t2) (float (- l)) (float (- l 1))))
       (draw-pips applet strength (- l) (- l)))))
 
 (defn- draw-units

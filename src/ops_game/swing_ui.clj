@@ -1,7 +1,7 @@
 (ns ops-game.swing-ui
   (:use [ops-game.processing]
-        [ops-game.data :only [update-hex-under-cursor update-hex-clicked update-unit-selected
-                              move-selected-unit get-status-data]]
+        [ops-game.data :only [update-hex-under-cursor! update-hex-clicked! update-unit-selected!
+                              move-selected-unit! get-status-data is-unit-current-side? next-turn!]]
         [ops-game.drawing :only [draw setup coord-to-hex redraw]]
         [seesaw core])
   (:import [java.awt Frame BorderLayout]
@@ -14,13 +14,19 @@
   main-frame (atom nil))
 
 (def ^{:private true
+       :doc "the action for changing the turn"}
+  next-turn-action (action :name "Next Turn"
+                           :handler (fn [_] (next-turn!)
+                                      (.setTitle @main-frame (str (:turn (get-status-data)))))))
+
+(def ^{:private true
        :doc "the action for exiting, currently disposes the main frame"}
   exit-action (action :name "Exit" :key "menu X"
                       :handler (fn [_] (.dispose @main-frame))))
 
 (defn- build-main-menu
   "builds the main menu"
-  [] (menubar :items [(menu :text "File" :items [exit-action])]))
+  [] (menubar :items [(menu :text "File" :items [next-turn-action exit-action])]))
 
 (defn- status-label "creates a label with our font"
   [text] (label :font "INCONSOLATA-12" :text text))
@@ -87,9 +93,13 @@
   "callback function for when the mouse is moved"
   [applet evt]
   (let [{x :x y :y} (bean evt)]
-    (update-hex-under-cursor (coord-to-hex x y)))
+    (update-hex-under-cursor! (coord-to-hex x y)))
   (redraw applet)
   (update-status-panel))
+
+(defn handle-unit-movement [loc]
+  (if (is-unit-current-side?)
+    (move-selected-unit! loc)))
 
 (defn mouse-clicked
   "callback function for when the mouse is clicked"
@@ -97,9 +107,9 @@
   (let [{:keys [x y button]} (bean evt)
         loc (coord-to-hex x y)]
     (if (= button MouseEvent/BUTTON1)
-      (do (update-hex-clicked loc)
-          (update-unit-selected loc))
-      (move-selected-unit loc)))
+      (do (update-hex-clicked! loc)
+          (update-unit-selected! loc))
+      (handle-unit-movement loc)))
   (redraw applet)
   (update-status-panel))
 

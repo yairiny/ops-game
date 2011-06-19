@@ -7,8 +7,11 @@
    :woods {:colour [92 219 91 128]}
    :forest {:colour [5 95 4 128]}})
 
+(defn- basic-us-unit [] {:colour [185 198 0]})
+(defn- basic-ger-unit [] {:colour [167 167 185]})
+
 (def unit-info
-  {:hq {:colour [185 198 0]}
-   :infantry {:colour [185 198 0]}
-   :machine-gun {:colour [185 198 0]}
-   :mortar {:colour [185 198 0]}})
+  {:us
+   (apply hash-map (interleave [:hq :infantry :machine-gun :mortar :engineer] (repeat (basic-us-unit))))
+   :germany
+   (apply hash-map (interleave [:hq :infantry :machine-gun :mortar :engineer] (repeat (basic-ger-unit))))})

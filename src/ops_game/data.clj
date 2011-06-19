@@ -1,5 +1,8 @@
 (ns ops-game.data)
 
+(def ^{:private true :doc "the turns left sequence"}
+  turns (atom (for [t (range) s [:allies :axis]] [t s])))
+
 (def ^{:private true
        :doc "the terrain game info"}
   terrain-info
@@ -21,26 +24,33 @@
    [:woods :woods :woods :woods :plain :plain :urban :urban]
    [:plain :plain :plain :plain :plain :urban :urban :urban]])
 
-(defn- make-unit [type full-name name movement strength]
-  {:type type :full-name full-name :name name :movement [movement movement] :strength [strength (rand-int strength)] :location [(rand-int 5) (rand-int 5)]})
+(defn- make-unit [type full-name name movement strength side]
+  {:type type :full-name full-name :name name :movement [movement movement] :strength [strength strength] :location [(rand-int 5) (rand-int 5)] :side side})
 
-(defn- make-inf-platoon [coy num]
-  (make-unit :infantry (format "%d/%s Platoon" num coy) (format "%d/%s Pl" num coy) 10 4))
+(defn- make-inf-platoon [coy num nation side]
+  (make-unit [nation :infantry] (format "%d/%s Platoon" num coy) (format "%d/%s Pl" num coy) 8 4 side))
 
-(defn- make-rifle-company [coy]
+(defn- make-pir-rifle-company [coy]
   (cons
-   (make-unit :hq (format "%s Company HQ" coy) (format "%s Coy" coy) 15 2)
-   (map #(make-inf-platoon coy %) (range 1 4))))
+   (make-unit [:us :hq] (format "%s Company HQ" coy) (format "%s Coy" coy) 8 1 :allies)
+   (map #(make-inf-platoon coy % :us :allies) (range 1 4))))
+
+(defn- make-pir-battalion []
+  (concat [(make-unit [:us :hq] "2/505 HQ" "2/505 HQ" 8 1 :allies)
+           (make-unit [:us :machine-gun] "2/505 MG Platoon" "2/505 MG" 8 2 :allies)
+           (make-unit [:us :engineer] "2/505 Eng Platoon" "2/505 Eng" 8 3 :allies)
+           (make-unit [:us :mortar] "2/505 Mortar Platoon" "2/505 Mtr" 6 2 :allies)]
+          (mapcat make-pir-rifle-company "DEF")))
+
+(defn- make-ger-grenadier-battalion []
+  (concat [(make-unit [:germany :hq] "II/916 HQ" "II/916 HQ" 15 1 :axis)]))
 
 (def ^{:private true
        :doc "the units, mapped from their ID"}
   units
   (atom (into {} (map vector
                       (iterate inc 100)
-                      (concat [(make-unit :hq "2/505 HQ" "2/505 HQ" 15 1)
-                               (make-unit :machine-gun "2/505 MG Platoon" "2/505 MG" 8 2)
-                               (make-unit :mortar "2/505 Mortar Platoon" "2/505 Mtr" 8 2)]
-                              (mapcat make-rifle-company "DEF"))))))
+                      (concat (make-pir-battalion) (make-ger-grenadier-battalion))))))
 
 (defn- make-units-by-loc
   "turns a unit map into a map from location to units"
@@ -69,17 +79,17 @@
        :doc "the hex that was last clicked"}
   hex-clicked (atom nil))
 
-(defn update-hex-under-cursor
+(defn update-hex-under-cursor!
   "updates the hex under the cursor"
   [loc]
   (reset! hex-under-cursor loc))
 
-(defn update-hex-clicked
+(defn update-hex-clicked!
   "updates the hex last clicked"
   [loc]
   (reset! hex-clicked loc))
 
-(defn update-unit-selected
+(defn update-unit-selected!
   "updates the selected unit"
   [loc]
   (let [loc-units (@units-by-loc loc)
@@ -103,7 +113,8 @@
        {:highlighted-hex-type hex-type
         :highlighted-hex-loc @hex-under-cursor
         :highlighted-hex-cost (-> hex-type terrain-info :cost)
-        :selected-unit (@units @selected-unit)}))
+        :selected-unit (@units @selected-unit)
+        :turn (first @turns)}))
 
 (defn- get-adjacent
   "gets the vector of adjacent hexes"
@@ -119,7 +130,7 @@
                        [[(dec row) (inc col)] [(inc row) (inc col)]])))]
     (filter (fn [[row col]] (and (>= row 0) (>= col 0) (<= row num-rows) (<= col num-cols))) all-adj)))
 
-(defn- move-unit "helper function to move a unit from one location to another"
+(defn- move-unit! "helper function to move a unit from one location to another"
   [unit from to]
   (reset! units (assoc-in @units [unit :location] to))
   (let [locs-map (-> (if (@units-by-loc to)
@@ -142,16 +153,31 @@
     (and (some #{to}  (get-adjacent from))
          (>= (second (:movement unit)) (calc-move-cost from to)))))
 
-(defn- update-move-cost
+(defn- update-move-cost!
   "updates the movement cost for this unit"
   [unit from to]
   (reset! units (update-in @units [unit :movement] (fn [[a b]] [a (- b (calc-move-cost from to))]))))
 
-(defn move-selected-unit
+(defn move-selected-unit!
   "moves the selected unit (if any) to the specified location"
   [loc]
   (if @selected-unit
     (let [old-loc (:location (@units @selected-unit))]
       (if (can-unit-move? @selected-unit old-loc loc)
-        (do (move-unit @selected-unit old-loc loc)
-            (update-move-cost @selected-unit old-loc loc))))))
+        (do (move-unit! @selected-unit old-loc loc)
+            (update-move-cost! @selected-unit old-loc loc))))))
+
+(defn- reset-units-movement! "resets movement values for all units"
+  []  (reset! units (into {} (map (fn [[id unit]] [id (update-in unit [:movement] (fn [[a _]] [a a]))]) @units))))
+
+(defn get-current-turn []
+  (first @turns))
+
+(defn next-turn! "ends this turn and goes to the next one"
+  []
+  (swap! turns next)
+  (reset-units-movement!))
+
+(defn is-unit-current-side? "checks if the current selected unit is the same side as is playing now"
+  []
+  (and @selected-unit (= (get-in @units [@selected-unit :side]) ((get-current-turn) 1))))

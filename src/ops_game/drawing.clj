@@ -123,7 +123,7 @@
   [applet {:keys [location type name strength]} selected? draw-offsets?]
   (with-pushed-matrix-and-style applet
     (apply translate-to-loc applet location)
-    (let [base-colour (:colour (unit-info type))
+    (let [base-colour (:colour (get-in unit-info type))
           colour (if selected? (conj base-colour 128) base-colour)]
       (apply fill applet colour))
     (let [l (/ *xdiff* 1.5)]

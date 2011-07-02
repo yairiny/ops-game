@@ -7,5 +7,6 @@
   :dev-dependencies [[marginalia "0.5.1"]
                      [swank-clojure "1.4.0-SNAPSHOT"]
                      [clojure-source "1.2.0"]]
-  :jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"])
+  :jvm-opts ["-Djava.library.path=/Applications/Processing.app/Contents/Resources/Java/modes/java/libraries/opengl/library/macosx"
+             "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"])
 

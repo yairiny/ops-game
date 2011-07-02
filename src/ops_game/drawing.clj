@@ -4,7 +4,7 @@
   (:use [ops-game.drawing data])
   (:use [ops-game.processing])
   (:import [java.awt Polygon]
-           [processing.core PApplet]))
+           [processing.core PApplet PConstants]))
 
 (def ^{:private true
        :doc "the length of a hex side"}
@@ -76,7 +76,7 @@
 
 (defn setup "the processing setup function for the graphics panel"
   [applet]
-  (.size applet 2000 2000)
+  (.size applet 2000 2000 PConstants/JAVA2D)
   (.background applet 255)
   (.smooth applet)
   (.noLoop applet)

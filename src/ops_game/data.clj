@@ -16,14 +16,29 @@
 (def ^{:private true
        :doc "the game map"}
   game-map
-  [[:plain :plain :plain :plain :plain :plain :plain :plain]
-   [:plain :plain :woods :woods :plain :plain :plain :plain]
-   [:woods :woods :forest :woods :plain :plain :plain :plain]
-   [:woods :forest :forest :woods :village :village :plain :plain]
-   [:woods :forest :forest :woods :village :village :plain :plain]
-   [:woods :woods :forest :woods :plain :plain :plain :plain]
-   [:woods :woods :woods :woods :plain :plain :urban :urban]
-   [:plain :plain :plain :plain :plain :urban :urban :urban]])
+  (atom [[:plain :plain :plain :plain :plain :plain :plain :plain]
+         [:plain :plain :woods :woods :plain :plain :plain :plain]
+         [:woods :woods :forest :woods :plain :plain :plain :plain]
+         [:woods :forest :forest :woods :village :village :plain :plain]
+         [:woods :forest :forest :woods :village :village :plain :plain]
+         [:woods :woods :forest :woods :plain :plain :plain :plain]
+         [:woods :woods :woods :woods :plain :plain :urban :urban]
+         [:plain :plain :plain :plain :plain :urban :urban :urban]]))
+
+(defn change-map-size! 
+  "changes the size of the game map"
+  [width height]
+  (let [themap @game-map
+        curr-width (count (first themap))
+        curr-height (count themap)
+        themap
+        (if (< height curr-height)
+          (take height themap)
+          (apply conj themap (repeat (- height curr-height) [])))]
+    (reset! game-map (if (< width curr-width)
+       (vec (map #(vec (take width %)) themap))
+       (vec (map #(apply conj % (repeat (- width (count %)) :plain)) themap))))))
+
 
 (defn- make-pir-rifle-company [letter]
   (unit (str letter " Infantry Company") :us :foot-hq
@@ -111,13 +126,13 @@
 
 (defn get-drawing-data
   "returns the data that is needed for drawing"
-  [] {:map game-map
+  [] {:map @game-map
       :highlight @hex-under-cursor :clicked @hex-clicked
       :units @units :locs @units-by-loc :selected-unit @selected-unit})
 
 (defn get-status-data
   "returns the information about the hex under the cursor and the selected unit"
-  [] (let [hex-type (when @hex-under-cursor (get-in game-map @hex-under-cursor))]
+  [] (let [hex-type (when @hex-under-cursor (get-in @game-map @hex-under-cursor))]
        {:highlighted-hex-type hex-type
         :highlighted-hex-loc @hex-under-cursor
         :highlighted-hex-cost (-> hex-type terrain-info :cost)
@@ -128,8 +143,8 @@
   "gets the vector of adjacent hexes"
   [loc]
   (let [[row col] loc
-        num-rows (count game-map)
-        num-cols (count (first game-map))
+        num-rows (count @game-map)
+        num-cols (count (first @game-map))
         adj [[(dec row) col] [row (dec col)] [row (inc col)] [(inc row) col]]
         all-adj
         (vec
@@ -153,7 +168,7 @@
 
 (defn- calc-move-cost
   [from to]
-  (-> (get-in game-map to) terrain-info :cost))
+  (-> (get-in @game-map to) terrain-info :cost))
 
 (defn- can-unit-move?
   [unit from to]

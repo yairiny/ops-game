@@ -3,4 +3,4 @@ pom.xml
 lib
 classes
 docs
-.DS_Store
+.DS*

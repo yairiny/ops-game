@@ -89,13 +89,15 @@
         (update-unit-status-panel status)
         (update-terrain-status-panel status))))
 
-(defn mouse-moved
-  "callback function for when the mouse is moved"
-  [applet evt]
-  (let [{x :x y :y} (bean evt)]
-    (update-hex-under-cursor! (coord-to-hex x y)))
-  (redraw applet)
-  (update-status-panel))
+(comment (defn mouse-moved
+   "callback function for when the mouse is moved"
+   [applet evt]
+   (let [{x :x y :y} (bean evt)
+         loc (coord-to-hex x y)
+         {curr-loc :highlighted-hex-loc} (get-status-data)]
+     (when (and loc (not= curr-loc loc))
+       (update-hex-under-cursor! loc)
+       (update-status-panel)))))
 
 (defn handle-unit-movement [loc]
   (if (is-unit-current-side?)
@@ -107,7 +109,8 @@
   (let [{:keys [x y button]} (bean evt)
         loc (coord-to-hex x y)]
     (if (= button MouseEvent/BUTTON1)
-      (do (update-hex-clicked! loc)
+      (do (update-hex-under-cursor! loc)
+          (update-hex-clicked! loc)
           (update-unit-selected! loc))
       (handle-unit-movement loc)))
   (redraw applet)
@@ -120,7 +123,7 @@ in order to facilitate easy development without restarting"
   (let [applet (make-applet
                 {:setup setup
                  :draw #(draw %)
-                 :mouseMoved #(mouse-moved %1 %2)
+;;                 :mouseMoved #(mouse-moved %1 %2)
                  :mouseClicked #(mouse-clicked %1 %2)})
         frm (frame
              :title "CMBN Operational Layer"

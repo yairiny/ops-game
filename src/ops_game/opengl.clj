@@ -1,6 +1,15 @@
 (ns ops-game.opengl
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
-           [org.lwjgl.input Keyboard Mouse]))
+           [org.lwjgl.input Keyboard Mouse]
+           [de.lessvoid.nifty Nifty]
+           [de.lessvoid.nifty.sound SoundSystem]
+           [de.lessvoid.nifty.tools TimeProvider]
+           [de.lessvoid.nifty.renderer.lwjgl.render LwjglRenderDevice]
+           [de.lessvoid.nifty.spi.input InputSystem]
+           [de.lessvoid.nifty.nulldevice NullSoundDevice]
+           [de.lessvoid.nifty.sound.openal OpenALSoundDevice]
+           [de.lessvoid.nifty.screen Screen DefaultScreenController]
+           [de.lessvoid.nifty.builder ScreenBuilder LayerBuilder PanelBuilder]))
 
 (defn- set-display-mode [width height fullscreen]
   "sets the display mode according to the provided parameters"
@@ -35,7 +44,44 @@
     (GL11/glOrtho 0 width height 0 1 -1)
     (GL11/glMatrixMode GL11/GL_MODELVIEW)
     (GL11/glEnable GL11/GL_RGBA_MODE)
-    (GL11/glClearColor 1.0 1.0 1.0 0)))
+    (GL11/glClearColor 1.0 1.0 1.0 0)
+
+    (let [input-system
+          (reify InputSystem
+            (forwardEvents [this event-consumer]
+              )
+            (setMousePosition [this x y]
+              (println "setMousePos"))
+            )]
+      (def nifty (Nifty. (LwjglRenderDevice.) (NullSoundDevice.) input-system (TimeProvider.)))
+      (let [screen-builder
+            (doto (ScreenBuilder. "main")
+              (.controller (DefaultScreenController.))
+              (.layer
+               (doto (LayerBuilder. "layer")
+                 (.backgroundColor "#000f")
+                 (.childLayoutVertical)
+                 (.panel
+                  (let [panel-bldr (PanelBuilder.)]
+                    (doto panel-bldr
+                      (.id "panel")
+                      (.backgroundColor "#000f")
+                      (.height "*")
+                      (.width "100%")
+                      (.childLayoutCenter))))
+                 (.panel
+                  (let [panel-bldr (PanelBuilder.)]
+                    (doto panel-bldr
+                      (.id "panel")
+                      (.backgroundColor "#800f")
+                      (.height "250px")
+                      (.width "100%")
+                      (.childLayoutCenter)))))))
+            screen (.build screen-builder nifty)]
+        (.addScreen nifty "mainScreen" screen)
+        (.gotoScreen nifty "mainScreen"))
+      )
+    ))
 
 (defn teardown
   "destroys the open gl context and cleans up" 
@@ -50,12 +96,16 @@
     :or {input-handler-fn-arg nil draw-fn-arg nil} :as args}]
   {:pre [(fn? input-handler-fn) (fn? draw-fn) (integer? fps) (> fps 0)]}
   (when (not (Display/isCloseRequested))
+    (GL11/glLoadIdentity)
+    (.render nifty false)
+    (.update nifty)
     (let [keyboard (Keyboard/next)
           mouse (Mouse/next)
           input-ret (if (or keyboard mouse)
                       (input-handler-fn keyboard mouse input-handler-fn-arg)
                       input-handler-fn-arg)
-          draw-ret (draw-fn draw-fn-arg)]
+          draw-ret (draw-fn draw-fn-arg)
+          ]
       (Display/update)
       (Display/sync fps)
       (recur (merge args {:input-handler-fn-arg input-ret :draw-fn-arg :draw-ret})))))

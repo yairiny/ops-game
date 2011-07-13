@@ -7,7 +7,7 @@
 (def ^{:private true} w 1680)
 (def ^{:private true} h 1050)
 (def ^{:private true} full false)
-(def ^{:private true} fps 30)
+(def ^{:private true} fps 20)
 (def ^{:private true} map-height 800)
 
 (defn- draw
@@ -23,7 +23,9 @@
           y (- h y)
           hex (rndr/screen-to-hex [x y])]
       (when hex
-        (data/update-hex-under-cursor! hex))))
+        (data/update-hex-under-cursor! hex)
+        (when (:left (gl/get-mouse-buttons))
+          (data/update-unit-selected! hex)))))
   a)
 
 (defn initialise-gui

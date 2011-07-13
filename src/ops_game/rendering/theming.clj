@@ -19,3 +19,11 @@
   {:pre [(terrain-type terrain-base-colours)]}
   (terrain-type terrain-base-colours))
 
+(defn- basic-us-unit [] {:colour (int-colour-to-floats 185 198 0)})
+(defn- basic-ger-unit [] {:colour (int-colour-to-floats 107 147 145)})
+
+(def unit-info
+  {:us
+   (apply hash-map (interleave [:hq :infantry :machine-gun :mortar :engineer] (repeat (basic-us-unit))))
+   :germany
+   (apply hash-map (interleave [:hq :infantry :machine-gun :mortar :engineer] (repeat (basic-ger-unit))))})

@@ -74,7 +74,7 @@
          (map make-german-infantry-company [5 6 7])]))
 
 (defn- make-random-units []
-  (map #(merge % {:location [(rand-int 6) (rand-int 6)]})
+  (map #(merge % {:location [(rand-int 10) (rand-int 10)]})
        (concat (side :allies (make-pir-battalion))
                (side :axis (make-german-grenadier-battalion)))))
 

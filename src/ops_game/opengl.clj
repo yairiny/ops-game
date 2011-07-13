@@ -41,7 +41,8 @@
     (GL11/glEnable GL11/GL_RGBA_MODE)
     (GL11/glClearColor 1.0 1.0 1.0 0)
     
-    (def nifty (nifty/create))))
+    (def nifty (nifty/create))
+    ))
 
 (defn teardown
   "destroys the open gl context and cleans up" 
@@ -61,14 +62,19 @@
     (GL11/glLoadIdentity)
     (.render nifty true)
     (.update nifty)
-    (let [keyboard (Keyboard/next)
-          mouse (Mouse/next)
-          input-ret (if (or keyboard mouse)
-                      (input-handler-fn keyboard mouse input-handler-fn-arg)
-                      input-handler-fn-arg)
-          draw-ret (draw-fn draw-fn-arg)]
-      (Display/update)
+    (let [input-ret (loop [input-ret input-handler-fn-arg]
+                      (Mouse/poll)
+                      (if (Mouse/next)
+                        (recur (input-handler-fn false true input-ret))
+                        input-ret))
+          input-ret (loop [input-ret input-handler-fn-arg]
+                      (Keyboard/poll)
+                      (if (Keyboard/next)
+                        (recur (input-handler-fn true false input-ret))
+                        input-ret))
+          draw-ret (draw-fn draw-fn-arg)]      
       (Display/sync fps)
+      (Display/update)
       (recur (merge args {:input-handler-fn-arg input-ret :draw-fn-arg :draw-ret})))))
 
 (defn start-main-loop [& args]
@@ -191,10 +197,17 @@ the arguments are optional and the return value of each function will be passed 
   [] 
   [(Mouse/getX) (Mouse/getY)])
 
+(defn get-mouse-buttons
+  "returns a map of buttons and their state"  
+  []
+  (defn mouse-down [button]
+    (and (= (Mouse/getEventButton) button) (Mouse/getEventButtonState)))
+  {:left (mouse-down 0) :middle (mouse-down 2) :right (mouse-down 1)})
+
 (defn create-font
   "creates the font object"
-  []
-  (let [font (doto (UnicodeFont. (Font. "Arial" Font/BOLD 9))
+  [name bold? size]
+  (let [font (doto (UnicodeFont. (Font. name (if bold? Font/BOLD 0) size))
                (.addAsciiGlyphs))]
     (.add (.getEffects font) (ColorEffect. java.awt.Color/BLACK))
     (.loadGlyphs font)
@@ -203,7 +216,7 @@ the arguments are optional and the return value of each function will be passed 
 (defn draw-text
   "draws a string on the screen"
   [font x y text]
-  {:pre [ font (>= x 0) (>= y 0) (string? text)]}
+  {:pre [font (string? text)]}
  (GL11/glEnable GL11/GL_TEXTURE_2D)
   (.drawString font x y text)
   (GL11/glDisable GL11/GL_TEXTURE_2D)

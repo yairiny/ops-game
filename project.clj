@@ -10,6 +10,7 @@
                  [lessvoid/nifty-style-black "1.3"]
                  [lessvoid/nifty-lwjgl-renderer "1.3" :exclusions [lwjgl/lwjgl lwjgl/jinput lwjgl/lwjgl-util]]
                  [lessvoid/nifty-openal-soundsystem "1.0"]
+                 [slick/slick "b274"]
                  ]
   :dev-dependencies [[marginalia "0.5.1"]
                      [clojure-source "1.2.0"]]

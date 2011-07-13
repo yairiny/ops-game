@@ -7,7 +7,7 @@
 (def ^{:private true} w 1680)
 (def ^{:private true} h 1050)
 (def ^{:private true} full false)
-(def ^{:private true} fps 20)
+(def ^{:private true} fps 30)
 (def ^{:private true} map-height 800)
 
 (defn- draw

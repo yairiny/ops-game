@@ -1,5 +1,5 @@
 (ns ops-game.rendering
-  (:require [ops-game.opengl :as g] :reload-all)
+  (:require [ops-game.opengl :as g])
   (:use [ops-game.rendering theming constants]))
 
 
@@ -19,13 +19,14 @@
 (defn setup-rendering
   "setup for the rendering routines"
   []
-  (def hex-list (g/display-list-generate draw-hex)))
+  (def hex-list (g/display-list-generate draw-hex))
+  (def font (g/create-font)))
 
 (defn draw-game-map
   "this is the main function for drawing the game map"
   [{:keys [map hovered] :as game-data} {:keys [left top width height] :as dims}]
   {:pre [(map? game-data) (map? dims) (every? #(>= % 0) [left top width height])]}
-  
+
   (g/clear-colour :black)
   (g/load-identity)
   
@@ -37,11 +38,12 @@
       (g/with-pushed-matrix
         (doseq [[cell col] (clojure.core/map #(vector %1 %2) cells (range))]
           (let [hex-colour (terrain-colour cell)]
-
             (apply g/colour (conj hex-colour (if (= [row col] hovered) 1.0 0.75))))
           (g/display-list-call hex-list)
+          (g/draw-text font 0 0 "0,0")
           (g/translate a 0)))
-      (g/translate (if (even? row) r (- r)) b-h 0))))
+      (g/translate (if (even? row) r (- r)) b-h 0))
+    ))
 
 (defn screen-to-hex 
   "gets the hex coordinates from the screen coordinates"

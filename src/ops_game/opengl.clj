@@ -1,15 +1,11 @@
 (ns ops-game.opengl
+  (:require [ops-game.opengl [nifty :as nifty]])
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
            [org.lwjgl.input Keyboard Mouse]
-           [de.lessvoid.nifty Nifty]
-           [de.lessvoid.nifty.sound SoundSystem]
-           [de.lessvoid.nifty.tools TimeProvider]
-           [de.lessvoid.nifty.renderer.lwjgl.render LwjglRenderDevice]
-           [de.lessvoid.nifty.spi.input InputSystem]
-           [de.lessvoid.nifty.nulldevice NullSoundDevice]
-           [de.lessvoid.nifty.sound.openal OpenALSoundDevice]
-           [de.lessvoid.nifty.screen Screen DefaultScreenController]
-           [de.lessvoid.nifty.builder ScreenBuilder LayerBuilder PanelBuilder]))
+           [java.awt Font]
+           [org.newdawn.slick UnicodeFont Color]
+           [org.newdawn.slick.font.effects ColorEffect]
+           ))
 
 (defn- set-display-mode [width height fullscreen]
   "sets the display mode according to the provided parameters"
@@ -37,7 +33,6 @@
     (GL11/glBlendFunc GL11/GL_SRC_ALPHA, GL11/GL_ONE_MINUS_SRC_ALPHA)
 
     (GL11/glDisable GL11/GL_DEPTH_TEST)
-    (GL11/glEnable GL11/GL_TEXTURE_2D)
     
     (GL11/glMatrixMode GL11/GL_PROJECTION)
     (GL11/glLoadIdentity)
@@ -45,50 +40,17 @@
     (GL11/glMatrixMode GL11/GL_MODELVIEW)
     (GL11/glEnable GL11/GL_RGBA_MODE)
     (GL11/glClearColor 1.0 1.0 1.0 0)
-
-    (let [input-system
-          (reify InputSystem
-            (forwardEvents [this event-consumer]
-              )
-            (setMousePosition [this x y]
-              (println "setMousePos"))
-            )]
-      (def nifty (Nifty. (LwjglRenderDevice.) (NullSoundDevice.) input-system (TimeProvider.)))
-      (let [screen-builder
-            (doto (ScreenBuilder. "main")
-              (.controller (DefaultScreenController.))
-              (.layer
-               (doto (LayerBuilder. "layer")
-                 (.backgroundColor "#000f")
-                 (.childLayoutVertical)
-                 (.panel
-                  (let [panel-bldr (PanelBuilder.)]
-                    (doto panel-bldr
-                      (.id "panel")
-                      (.backgroundColor "#000f")
-                      (.height "*")
-                      (.width "100%")
-                      (.childLayoutCenter))))
-                 (.panel
-                  (let [panel-bldr (PanelBuilder.)]
-                    (doto panel-bldr
-                      (.id "panel")
-                      (.backgroundColor "#800f")
-                      (.height "250px")
-                      (.width "100%")
-                      (.childLayoutCenter)))))))
-            screen (.build screen-builder nifty)]
-        (.addScreen nifty "mainScreen" screen)
-        (.gotoScreen nifty "mainScreen"))
-      )
-    ))
+    
+    (def nifty (nifty/create))))
 
 (defn teardown
   "destroys the open gl context and cleans up" 
   []
   (Mouse/destroy)
   (Keyboard/destroy)
-  (Display/destroy))
+  (Display/destroy)
+  (nifty/destroy nifty)
+  )
 
 (defn- start-main-loop*
   "implementation of the main loop function"
@@ -97,15 +59,14 @@
   {:pre [(fn? input-handler-fn) (fn? draw-fn) (integer? fps) (> fps 0)]}
   (when (not (Display/isCloseRequested))
     (GL11/glLoadIdentity)
-    (.render nifty false)
+    (.render nifty true)
     (.update nifty)
     (let [keyboard (Keyboard/next)
           mouse (Mouse/next)
           input-ret (if (or keyboard mouse)
                       (input-handler-fn keyboard mouse input-handler-fn-arg)
                       input-handler-fn-arg)
-          draw-ret (draw-fn draw-fn-arg)
-          ]
+          draw-ret (draw-fn draw-fn-arg)]
       (Display/update)
       (Display/sync fps)
       (recur (merge args {:input-handler-fn-arg input-ret :draw-fn-arg :draw-ret})))))
@@ -229,3 +190,21 @@ the arguments are optional and the return value of each function will be passed 
   "gets the mouse position"
   [] 
   [(Mouse/getX) (Mouse/getY)])
+
+(defn create-font
+  "creates the font object"
+  []
+  (let [font (doto (UnicodeFont. (Font. "Arial" Font/BOLD 9))
+               (.addAsciiGlyphs))]
+    (.add (.getEffects font) (ColorEffect. java.awt.Color/BLACK))
+    (.loadGlyphs font)
+    font))
+
+(defn draw-text
+  "draws a string on the screen"
+  [font x y text]
+  {:pre [ font (>= x 0) (>= y 0) (string? text)]}
+ (GL11/glEnable GL11/GL_TEXTURE_2D)
+  (.drawString font x y text)
+  (GL11/glDisable GL11/GL_TEXTURE_2D)
+  )

@@ -1,5 +1,6 @@
 (ns ops-game.gui
   (:require [ops-game.opengl :as gl]
+            [ops-game.opengl.nifty :as nifty]
             [ops-game.data :as data]
             [ops-game.rendering :as rndr]
             :reload-all))
@@ -23,6 +24,19 @@
   (when (data/is-unit-current-side?)
     (data/move-selected-unit! loc)))
 
+(defn- update-status-panel
+  "updates the various status panels"
+  []
+  (let [{:keys [selected-unit]} (data/get-status-data)]
+    (if selected-unit
+      (let [{:keys [full-name movement]} selected-unit]
+        (doto nifty
+          (nifty/update-label-text "unit-name" full-name)
+          (nifty/update-label-text "unit-movement" (str movement))))
+      (doto nifty
+        (nifty/update-label-text "unit-name" "")
+        (nifty/update-label-text "unit-movement" "")))))
+
 (defn- input-dummy [k m a]
   (when m
     (let [[x y] (gl/get-mouse-pos)
@@ -33,7 +47,8 @@
         (when (:left (gl/get-mouse-buttons))
           (data/update-unit-selected! hex))
         (when (:right (gl/get-mouse-buttons))
-          (handle-unit-movement hex)))))
+          (handle-unit-movement hex))
+        (update-status-panel))))
   a)
 
 (defn initialise-gui
@@ -41,7 +56,11 @@
   []
   (try 
     (gl/setup w h full)
+    (def nifty (nifty/create))
     (rndr/setup-rendering)
-    (gl/start-main-loop :input-handler-fn #(input-dummy %1 %2 %3) :draw-fn #(draw %) :fps fps)
+    (gl/start-main-loop :nifty nifty :input-handler-fn #(input-dummy %1 %2 %3) :draw-fn #(draw %) :fps fps)
+    (catch Throwable e (.printStackTrace e))
     (finally
-     (gl/teardown))))
+     (gl/teardown)
+     (nifty/destroy nifty)))
+)

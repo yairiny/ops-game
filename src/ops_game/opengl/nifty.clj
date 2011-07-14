@@ -9,54 +9,32 @@
            [de.lessvoid.nifty.nulldevice NullSoundDevice]
            [de.lessvoid.nifty.sound.openal OpenALSoundDevice]
            [de.lessvoid.nifty.screen Screen DefaultScreenController]
-           [de.lessvoid.nifty.builder ScreenBuilder LayerBuilder PanelBuilder]))
+           [de.lessvoid.nifty.builder ScreenBuilder LayerBuilder PanelBuilder]
+           [de.lessvoid.nifty.controls.label.builder LabelBuilder]
+           [de.lessvoid.nifty.controls Label]))
 
 (defn- input-system "creates a merged input system implementation"
   []
   (reify InputSystem
-            (forwardEvents [this event-consumer]
-              )
-            (setMousePosition [this x y]
-              (println "setMousePos"))))
-
-(defn- create-screen "creates the nifty screen - this should probably be moved out"
-  [nifty]
-  (let [screen-builder
-            (doto (ScreenBuilder. "main")
-              (.controller (DefaultScreenController.))
-              (.layer
-               (doto (LayerBuilder. "layer")
-                 (.backgroundColor "#000f")
-                 (.childLayoutVertical)
-                 (.panel
-                  (let [panel-bldr (PanelBuilder.)]
-                    (doto panel-bldr
-                      (.id "panel1")
-                      (.backgroundColor "#000f")
-                      (.height "*")
-                      (.width "100%")
-                      (.childLayoutCenter))))
-                 (.panel
-                  (let [panel-bldr (PanelBuilder.)]
-                    (doto panel-bldr
-                      (.id "panel2")
-                      (.backgroundColor "#800f")
-                      (.height "250px")
-                      (.width "100%")
-                      (.childLayoutCenter)))))))]
-    (.build screen-builder nifty)))
+            (forwardEvents [this event-consumer])
+            (setMousePosition [this x y])))
 
 (defn create "creates the nifty controller and gives it the initial screen"
   []
-  (let [nifty (Nifty. (LwjglRenderDevice.) (NullSoundDevice.) (input-system) (TimeProvider.))
-        screen (create-screen nifty)]
+  (let [nifty (Nifty. (LwjglRenderDevice.) (NullSoundDevice.) (input-system) (TimeProvider.))]
+    (.setLevel (java.util.logging.Logger/getLogger "de.lessvoid.nifty") java.util.logging.Level/SEVERE)
     (doto nifty
-      (.addScreen "mainScreen" screen)
-      (.gotoScreen "mainScreen"))))
+      (.loadStyleFile "nifty-default-styles.xml")
+      (.loadControlFile "nifty-default-controls.xml")
+      (.fromXmlWithoutStartScreen "data/gui.xml")
+      (.gotoScreen "main"))))
 
 (defn destroy "destroys the nifty controller"
   [nifty]
   (doto nifty
     (.removeScreen "mainScreen")
-    (.exit))
-)
+    (.exit)))
+
+(defn update-label-text "updates the text for a label"
+  [nifty id text]
+  (.. nifty (getCurrentScreen) (findNiftyControl id Label) (setText text)))

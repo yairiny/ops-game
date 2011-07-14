@@ -48,7 +48,7 @@
 (defn draw-unit 
   "draws a unit at it's location"
   [{:keys [name location type]} multiple? selected?]
-;  {:pre [name location]}
+  {:pre [name location]}
   (let [[row col] location]
     (g/translate (+ (* a col) (if (odd? row) r 0)) (* row b-h))
     (when multiple?

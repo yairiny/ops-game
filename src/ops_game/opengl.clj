@@ -1,11 +1,9 @@
 (ns ops-game.opengl
-  (:require [ops-game.opengl [nifty :as nifty]])
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
            [org.lwjgl.input Keyboard Mouse]
            [java.awt Font]
            [org.newdawn.slick UnicodeFont Color]
-           [org.newdawn.slick.font.effects ColorEffect]
-           ))
+           [org.newdawn.slick.font.effects ColorEffect]))
 
 (defn- set-display-mode [width height fullscreen]
   "sets the display mode according to the provided parameters"
@@ -39,29 +37,23 @@
     (GL11/glOrtho 0 width height 0 1 -1)
     (GL11/glMatrixMode GL11/GL_MODELVIEW)
     (GL11/glEnable GL11/GL_RGBA_MODE)
-    (GL11/glClearColor 1.0 1.0 1.0 0)
-    
-    (def nifty (nifty/create))
-    ))
+    (GL11/glClearColor 1.0 1.0 1.0 0)))
 
 (defn teardown
   "destroys the open gl context and cleans up" 
   []
   (Mouse/destroy)
   (Keyboard/destroy)
-  (Display/destroy)
-  (nifty/destroy nifty)
-  )
+  (Display/destroy))
 
 (defn- start-main-loop*
   "implementation of the main loop function"
-  [{:keys [input-handler-fn draw-fn fps input-handler-fn-arg draw-fn-arg]
+  [{:keys [nifty input-handler-fn draw-fn fps input-handler-fn-arg draw-fn-arg]
     :or {input-handler-fn-arg nil draw-fn-arg nil} :as args}]
-  {:pre [(fn? input-handler-fn) (fn? draw-fn) (integer? fps) (> fps 0)]}
+  {:pre [nifty (fn? input-handler-fn) (fn? draw-fn) (integer? fps) (> fps 0)]}
   (when (not (Display/isCloseRequested))
     (GL11/glLoadIdentity)
-    (.render nifty true)
-    (.update nifty)
+    (GL11/glDisable GL11/GL_TEXTURE_2D)
     (let [input-ret (loop [input-ret input-handler-fn-arg]
                       (Mouse/poll)
                       (if (Mouse/next)
@@ -75,10 +67,14 @@
           draw-ret (draw-fn draw-fn-arg)]      
       (Display/sync fps)
       (Display/update)
+    (GL11/glLoadIdentity)
+    (.render nifty false)
+    (.update nifty)
       (recur (merge args {:input-handler-fn-arg input-ret :draw-fn-arg :draw-ret})))))
 
 (defn start-main-loop [& args]
   "starts the main program loop. parameters are as follows:
+:nifty - the nifty gui instance
 :input-handler-fn - (fn [kb-event? mouse-event? input-fn-arg]
 :draw-fn - (fn [draw-fn-arg]
 :fps - target fps
@@ -217,7 +213,7 @@ the arguments are optional and the return value of each function will be passed 
   "draws a string on the screen"
   [font x y text]
   {:pre [font (string? text)]}
- (GL11/glEnable GL11/GL_TEXTURE_2D)
+  (GL11/glEnable GL11/GL_TEXTURE_2D)
   (.drawString font x y text)
   (GL11/glDisable GL11/GL_TEXTURE_2D))
 

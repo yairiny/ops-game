@@ -1,0 +1,27 @@
+<nifty>
+  <screen id="main" controller="de.lessvoid.nifty.screen.DefaultScreenController">
+    <layer id="layer" backgroundColor="#000f" childLayout="vertical">
+      <panel id="spacer-panel" backgroundColor="#000f" height="*"
+             width="100%"/>
+      <panel id="gui-panel" backgroundColor="#800f" height="250px"
+             width="100%" childLayout="horizontal">
+        <panel id="unit-panel" backgroundColor="#333f" height="100%"
+               width="25%" childLayout="horizontal">
+          <panel id="unit-panel-labels" height="100%" childLayout="vertical">
+            <control id="unit-name-label" name="label" 
+                     text="Unit Name:" align="right"/>
+            <control id="unit-movement-label" name="label" 
+                     text="Movement:" align="right"/>
+          </panel>
+          <panel id="unit-panel-values" height="100%" width="*"
+                 backgroundColor="#080f" childLayout="vertical">
+            <control id="unit-name" name="label" width="100%"
+                     text="" align="right"/>
+            <control id="unit-movement" name="label" width="100%"
+                     text="" align="right"/>
+          </panel>
+        </panel>
+      </panel>
+    </layer>
+  </screen>
+</nifty>

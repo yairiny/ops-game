@@ -16,14 +16,24 @@
 (def ^{:private true
        :doc "the game map"}
   game-map
-  (atom [[:plain :plain :plain :plain :plain :plain :plain :plain]
-         [:plain :plain :woods :woods :plain :plain :plain :plain]
-         [:woods :woods :forest :woods :plain :plain :plain :plain]
-         [:woods :forest :forest :woods :village :village :plain :plain]
-         [:woods :forest :forest :woods :village :village :plain :plain]
-         [:woods :woods :forest :woods :plain :plain :plain :plain]
-         [:woods :woods :woods :woods :plain :plain :urban :urban]
-         [:plain :plain :plain :plain :plain :urban :urban :urban]]))
+  (atom [[:plain :plain :plain :plain :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :woods :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:woods :woods :forest :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:woods :forest :forest :woods :village :village :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:woods :forest :forest :woods :village :village :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:woods :woods :forest :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:woods :woods :woods :woods :plain :plain :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         [:plain :plain :plain :plain :plain :urban :urban :urban :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain :woods :plain :plain :plain :plain]
+         ]))
 
 (defn change-map-size! 
   "changes the size of the game map"
@@ -64,7 +74,7 @@
          (map make-german-infantry-company [5 6 7])]))
 
 (defn- make-random-units []
-  (map #(merge % {:location [(rand-int 6) (rand-int 6)]})
+  (map #(merge % {:location [(rand-int 10) (rand-int 10)]})
        (concat (side :allies (make-pir-battalion))
                (side :axis (make-german-grenadier-battalion)))))
 
@@ -127,7 +137,7 @@
 (defn get-drawing-data
   "returns the data that is needed for drawing"
   [] {:map @game-map
-      :highlight @hex-under-cursor :clicked @hex-clicked
+      :hovered @hex-under-cursor :clicked @hex-clicked
       :units @units :locs @units-by-loc :selected-unit @selected-unit})
 
 (defn get-status-data

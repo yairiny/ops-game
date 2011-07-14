@@ -219,5 +219,19 @@ the arguments are optional and the return value of each function will be passed 
   {:pre [font (string? text)]}
  (GL11/glEnable GL11/GL_TEXTURE_2D)
   (.drawString font x y text)
-  (GL11/glDisable GL11/GL_TEXTURE_2D)
-  )
+  (GL11/glDisable GL11/GL_TEXTURE_2D))
+
+(def ^{:private true :doc "keyword to GL polygon modes map"} polygon-face-modes
+  {:back-line [GL11/GL_BACK GL11/GL_LINE]
+   :back-fill [GL11/GL_BACK GL11/GL_FILL]
+   :back-point [GL11/GL_BACK GL11/GL_POINT]
+   :front-line [GL11/GL_FRONT GL11/GL_LINE]
+   :front-fill [GL11/GL_FRONT GL11/GL_FILL]
+   :front-point [GL11/GL_FRONT GL11/GL_POINT]})
+
+(defn change-polygon-face-mode
+  "changes the polygon mode"
+  [mode]
+  {:pre (mode polygon-face-modes)}
+  (let [[face poly-mode] (mode polygon-face-modes)]
+    (GL11/glPolygonMode face poly-mode)))

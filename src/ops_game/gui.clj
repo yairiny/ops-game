@@ -7,7 +7,7 @@
 (def ^{:private true} w 1680)
 (def ^{:private true} h 1050)
 (def ^{:private true} full false)
-(def ^{:private true} fps 20)
+(def ^{:private true} fps 12)
 (def ^{:private true} map-height 800)
 
 (defn- draw
@@ -17,6 +17,12 @@
         dims {:left 0 :top (- h map-height) :width w :height map-height}]
     (rndr/draw-game-map game-data dims)))
 
+(defn- handle-unit-movement
+  "handles moving the selected unit"
+  [loc]
+  (when (data/is-unit-current-side?)
+    (data/move-selected-unit! loc)))
+
 (defn- input-dummy [k m a]
   (when m
     (let [[x y] (gl/get-mouse-pos)
@@ -25,7 +31,9 @@
       (when hex
         (data/update-hex-under-cursor! hex)
         (when (:left (gl/get-mouse-buttons))
-          (data/update-unit-selected! hex)))))
+          (data/update-unit-selected! hex))
+        (when (:right (gl/get-mouse-buttons))
+          (handle-unit-movement hex)))))
   a)
 
 (defn initialise-gui

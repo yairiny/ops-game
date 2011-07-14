@@ -47,25 +47,32 @@
 
 (defn draw-unit 
   "draws a unit at it's location"
-  [{:keys [name location type]} multiple? selected?] 
+  [{:keys [name location type]} multiple? selected?]
+;  {:pre [name location]}
   (let [[row col] location]
     (g/translate (+ (* a col) (if (odd? row) r 0)) (* row b-h))
     (when multiple?
       (g/with-pushed-matrix
         (g/translate -2 -2)
-        (g/colour 0.5 0.5 0.5 1)
+        (g/colour 0 0 0 1)
         (g/display-list-call unit-counter-list))
       (g/translate 1 1))
     (let [unit-colour (get-in unit-info (conj type :colour))]
-      (apply g/colour (conj unit-colour (if selected? 0.5 1))))
+      (apply g/colour (if selected? [0.8 0.8 0.8] unit-colour)))
     (g/display-list-call unit-counter-list)
+    (g/change-polygon-face-mode :back-line)
+    (g/colour 0 0 0)
+    (g/display-list-call unit-counter-list)
+    (g/change-polygon-face-mode :back-fill)
+
     (g/draw-text font -14 0 name)))
 
 (defn- draw-units [locs units selected-unit]
   "draws the units on the map"
   (doseq [[loc {top-id :top ids :units}] locs]
-    (g/with-pushed-matrix
-      (draw-unit (units top-id) (next ids) (= selected-unit top-id)))))
+    (when top-id
+      (g/with-pushed-matrix
+        (draw-unit (units top-id) (next ids) (= selected-unit top-id))))))
 
 (defn draw-game-map
   "this is the main function for drawing the game map"

@@ -11,6 +11,8 @@
 (def ^{:private true} fps 12)
 (def ^{:private true} map-height 800)
 
+(declare nifty)
+
 (defn- draw
   "main drawing function"
   [arg]
@@ -51,16 +53,21 @@
         (update-status-panel))))
   a)
 
+(defn- subscribe-event-listeners
+  "subscribes all the gui event listeners"
+  []
+  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop))))
+
 (defn initialise-gui
   "Initialises the GUI"
   []
   (try 
     (gl/setup w h full)
     (def nifty (nifty/create))
+    (subscribe-event-listeners)
     (rndr/setup-rendering)
     (gl/start-main-loop :nifty nifty :input-handler-fn #(input-dummy %1 %2 %3) :draw-fn #(draw %) :fps fps)
     (catch Throwable e (.printStackTrace e))
     (finally
      (gl/teardown)
-     (nifty/destroy nifty)))
-)
+     (nifty/destroy nifty))))

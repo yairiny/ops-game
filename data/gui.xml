@@ -21,6 +21,11 @@
                      text="" align="right"/>
           </panel>
         </panel>
+        <panel id="mid-spacer-panel" width="*"/>
+        <panel id="button-panel" width="15%" childLayout="vertical"
+               backgroundColor="#333f">
+          <control id="exit-button" name="button" label="Exit"/>
+        </panel>
       </panel>
     </layer>
   </screen>

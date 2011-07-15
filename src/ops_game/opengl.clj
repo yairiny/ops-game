@@ -1,4 +1,5 @@
 (ns ops-game.opengl
+  (:require [ops-game.opengl.nifty :as nifty])
   (:import [org.lwjgl.opengl Display DisplayMode GL11]
            [org.lwjgl.input Keyboard Mouse]
            [java.awt Font]
@@ -22,6 +23,7 @@
   {:pre (> width 0) (> height 0) (#{true false} fullscreen)}
   (let [] 
     (set-display-mode width height fullscreen)
+    (def screen-height height)
     (Display/create)
     
     (Keyboard/create)
@@ -46,18 +48,29 @@
   (Keyboard/destroy)
   (Display/destroy))
 
+(defn- create-mouse-event
+  "creates a mouse event description map"
+  []
+  {:mouse true :x (Mouse/getEventX) :y (- screen-height (Mouse/getEventY)) :wheel (Mouse/getEventDWheel)
+   :button (Mouse/getEventButton) :down (Mouse/getEventButtonState)})
+
+(def ^{:private true :doc "an atom to hold the loop stop signal"} stop-loop
+  (atom false))
+
 (defn- start-main-loop*
   "implementation of the main loop function"
   [{:keys [nifty input-handler-fn draw-fn fps input-handler-fn-arg draw-fn-arg]
     :or {input-handler-fn-arg nil draw-fn-arg nil} :as args}]
   {:pre [nifty (fn? input-handler-fn) (fn? draw-fn) (integer? fps) (> fps 0)]}
-  (when (not (Display/isCloseRequested))
+  (when (not @stop-loop)
     (GL11/glLoadIdentity)
     (GL11/glDisable GL11/GL_TEXTURE_2D)
     (let [input-ret (loop [input-ret input-handler-fn-arg]
                       (Mouse/poll)
                       (if (Mouse/next)
-                        (recur (input-handler-fn false true input-ret))
+                        (do
+                          (nifty/report-event (create-mouse-event))
+                          (recur (input-handler-fn false true input-ret)))
                         input-ret))
           input-ret (loop [input-ret input-handler-fn-arg]
                       (Keyboard/poll)
@@ -67,9 +80,9 @@
           draw-ret (draw-fn draw-fn-arg)]      
       (Display/sync fps)
       (Display/update)
-    (GL11/glLoadIdentity)
-    (.render nifty false)
-    (.update nifty)
+      (GL11/glLoadIdentity)
+      (.update nifty)
+      (.render nifty true)
       (recur (merge args {:input-handler-fn-arg input-ret :draw-fn-arg :draw-ret})))))
 
 (defn start-main-loop [& args]
@@ -82,6 +95,10 @@
 :draw-fn-arg - the initial argument to the draw function
 the arguments are optional and the return value of each function will be passed as the argument to the next call"
   (start-main-loop* (apply hash-map (vec args))))
+
+(defn stop-main-loop []
+  "signals the main loop to stop"
+  (reset! stop-loop true))
 
 (defn start-scissor-test [x y w h]
   "starts the scissor test using the given dimension"

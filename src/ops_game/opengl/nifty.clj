@@ -53,7 +53,7 @@
 (defn create "creates the nifty controller and gives it the initial screen"
   []
   (let [nifty (Nifty. (LwjglRenderDevice.) (NullSoundDevice.) (input-system) (TimeProvider.))]
-    (.setLevel (java.util.logging.Logger/getLogger "de.lessvoid.nifty") java.util.logging.Level/FINEST)
+    (.setLevel (java.util.logging.Logger/getLogger "de.lessvoid.nifty") java.util.logging.Level/SEVERE)
     (.setLevel (java.util.logging.Logger/getLogger "de.lessvoid.nifty.renderer.lwjgl.render") java.util.logging.Level/SEVERE)
     (doto nifty
       (.loadStyleFile "nifty-default-styles.xml")

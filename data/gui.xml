@@ -12,6 +12,10 @@
                      text="Unit Name:" align="right"/>
             <control id="unit-movement-label" name="label" 
                      text="Movement:" align="right"/>
+            <control id="unit-strength-label" name="label" 
+                     text="Strength:" align="right"/>
+            <control id="unit-type-label" name="label" 
+                     text="Type:" align="right"/>
           </panel>
           <panel id="unit-panel-values" height="100%" width="*"
                  backgroundColor="#080f" childLayout="vertical">
@@ -19,11 +23,36 @@
                      text="" align="right"/>
             <control id="unit-movement" name="label" width="100%"
                      text="" align="right"/>
+            <control id="unit-strength" name="label" width="100%"
+                     text="" align="right"/>
+            <control id="unit-type" name="label" width="100%"
+                     text="" align="right"/>
           </panel>
         </panel>
         <panel id="mid-spacer-panel" width="*"/>
+        <panel id="game-panel" backgroundColor="#333f" height="100%"
+               width="25%" childLayout="horizontal">
+          <panel id="game-panel-labels" height="100%" childLayout="vertical">
+            <control id="game-turn-label" name="label" 
+                     text="Turn:" align="right"/>
+            <control id="terrain-type-label" name="label" 
+                     text="Terrain Type:" align="right"/>
+            <control id="terrain-cose-label" name="label" 
+                     text="Movement Cost:" align="right"/>
+          </panel>
+          <panel id="game-panel-values" height="100%" width="*"
+                 backgroundColor="#080f" childLayout="vertical">
+            <control id="game-turn" name="label" width="100%"
+                     text="" align="right"/>
+            <control id="terrain-type" name="label" width="100%"
+                     text="" align="right"/>
+            <control id="terrain-cost" name="label" width="100%"
+                     text="" align="right"/>
+          </panel>
+        </panel>
         <panel id="button-panel" width="15%" childLayout="vertical"
                backgroundColor="#333f">
+          <control id="next-turn-button" name="button" label="Next Turn"/>
           <control id="exit-button" name="button" label="Exit"/>
         </panel>
       </panel>

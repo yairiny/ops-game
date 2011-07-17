@@ -21,7 +21,8 @@
   "setup the open gl context and main window"
   [width height fullscreen]
   {:pre (> width 0) (> height 0) (#{true false} fullscreen)}
-  (let [] 
+  (let []
+    (reset! stop-loop false)
     (set-display-mode width height fullscreen)
     (def screen-height height)
     (Display/create)

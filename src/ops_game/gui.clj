@@ -8,7 +8,7 @@
 (def ^{:private true} w 1680)
 (def ^{:private true} h 1050)
 (def ^{:private true} full false)
-(def ^{:private true} fps 12)
+(def ^{:private true} fps 36)
 (def ^{:private true} map-height 800)
 
 (declare nifty)
@@ -29,12 +29,22 @@
 (defn- update-status-panel
   "updates the various status panels"
   []
-  (let [{:keys [selected-unit]} (data/get-status-data)]
+  (let [{:keys [selected-unit turn highlighted-hex-type highlighted-hex-cost]} (data/get-status-data)]
+    (nifty/update-label-text nifty "game-turn" (str turn))
+    (if highlighted-hex-type
+      (doto nifty
+        (nifty/update-label-text "terrain-type" (str highlighted-hex-type))
+        (nifty/update-label-text "terrain-cost" (str highlighted-hex-cost)))
+      (doto nifty
+        (nifty/update-label-text "terrain-type" "")
+        (nifty/update-label-text "terrain-cost" "")))
     (if selected-unit
-      (let [{:keys [full-name movement]} selected-unit]
+      (let [{:keys [full-name movement strength type]} selected-unit]
         (doto nifty
           (nifty/update-label-text "unit-name" full-name)
-          (nifty/update-label-text "unit-movement" (str movement))))
+          (nifty/update-label-text "unit-movement" (str movement))
+          (nifty/update-label-text "unit-strength" (str strength))
+          (nifty/update-label-text "unit-type" (str type))))
       (doto nifty
         (nifty/update-label-text "unit-name" "")
         (nifty/update-label-text "unit-movement" "")))))
@@ -56,7 +66,12 @@
 (defn- subscribe-event-listeners
   "subscribes all the gui event listeners"
   []
-  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop))))
+  (nifty/subscribe-event nifty "next-turn-button"
+                         (fn [_ _]
+                           (data/next-turn!)
+                           (update-status-panel)))
+  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop)))
+  )
 
 (defn initialise-gui
   "Initialises the GUI"

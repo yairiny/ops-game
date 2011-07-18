@@ -17,6 +17,10 @@
                   (Display/getAvailableDisplayModes))))
   (Display/setFullscreen fullscreen))
 
+(def ^{:private true :doc "an atom to hold the loop stop signal"}
+  stop-loop
+  (atom false))
+
 (defn setup
   "setup the open gl context and main window"
   [width height fullscreen]
@@ -54,9 +58,6 @@
   []
   {:mouse true :x (Mouse/getEventX) :y (- screen-height (Mouse/getEventY)) :wheel (Mouse/getEventDWheel)
    :button (Mouse/getEventButton) :down (Mouse/getEventButtonState)})
-
-(def ^{:private true :doc "an atom to hold the loop stop signal"} stop-loop
-  (atom false))
 
 (defn- start-main-loop*
   "implementation of the main loop function"

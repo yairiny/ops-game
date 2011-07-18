@@ -47,7 +47,9 @@
           (nifty/update-label-text "unit-type" (str type))))
       (doto nifty
         (nifty/update-label-text "unit-name" "")
-        (nifty/update-label-text "unit-movement" "")))))
+        (nifty/update-label-text "unit-movement" "")
+        (nifty/update-label-text "unit-strength" "")
+        (nifty/update-label-text "unit-type" "")))))
 
 (defn- input-dummy [k m a]
   (when m

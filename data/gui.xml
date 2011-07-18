@@ -1,6 +1,6 @@
 <nifty>
   <screen id="main" controller="de.lessvoid.nifty.screen.DefaultScreenController">
-    <layer id="layer" backgroundColor="#000f" childLayout="vertical">
+    <layer id="main-layer" backgroundColor="#000f" childLayout="vertical">
       <panel id="spacer-panel" backgroundColor="#000f" height="*"
              width="100%"/>
       <panel id="gui-panel" backgroundColor="#800f" height="250px"
@@ -53,9 +53,17 @@
         <panel id="button-panel" width="15%" childLayout="vertical"
                backgroundColor="#333f">
           <control id="next-turn-button" name="button" label="Next Turn"/>
+          <control id="load-game-button" name="button" label="Load Game"/>
+          <control id="save-game-button" name="button" label="Save Game"/>
           <control id="exit-button" name="button" label="Exit"/>
         </panel>
       </panel>
     </layer>
+    <popup id="popup-save" childLayout="center"
+           backgroundColor="#000f">
+      <panel id="save-panel" backgroundColor="#008f" height="250px"
+             width="300px">
+      </panel>
+    </popup>
   </screen>
 </nifty>

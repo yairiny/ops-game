@@ -65,6 +65,15 @@
         (update-status-panel))))
   a)
 
+(defn- save-game
+  "saves the game" []
+  (data/save-game nil))
+
+(defn- load-game
+  "loads the game" []
+  (println "loading game")
+  (data/load-game nil))
+
 (defn- subscribe-event-listeners
   "subscribes all the gui event listeners"
   []
@@ -73,6 +82,8 @@
                            (data/next-turn!)
                            (update-status-panel)))
   (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop)))
+  (nifty/subscribe-event nifty "save-game-button" (fn [_ _] (save-game)))
+  (nifty/subscribe-event nifty "load-game-button" (fn [_ _] (load-game)))
   )
 
 (defn initialise-gui

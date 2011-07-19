@@ -1,7 +1,6 @@
 (ns ops-game.data.unit-dsl
   (:require [clojure.string :as str])
-  (:use ops-game.data.types)
-  (:import [ops-game.data.types Unit]))
+  (:require [ops-game.data.types :as dt]))
 
 (def ^{:private true} unit-templates
   {:us
@@ -42,7 +41,8 @@
            {:keys [type movement strength]} template-type
            movement (if (sequential? movement) movement [movement movement])
            strength (if (sequential? strength) strength [strength strength])]
-       (cons (Unit. type name (shorten-name name) movement strength nil nil) (flatten subs))))
+       (cons (dt/unit :type type :full-name name :name (shorten-name name)
+                      :movement movement :strength strength :side nil :location nil) (flatten subs))))
   ([name template-country template-type]
      (unit name template-country template-type nil []))
   ([name template-country template-type overrides-or-subs]

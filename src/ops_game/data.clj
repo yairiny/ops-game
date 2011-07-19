@@ -1,5 +1,6 @@
 (ns ops-game.data
-  (:use ops-game.data.unit-dsl))
+  (:use ops-game.data.unit-dsl)
+  (:require [ops-game.data.persistence :as pst]))
 
 (def ^{:private true :doc "the turns left sequence"}
   turns (atom (for [t (range) s [:allies :axis]] [t s])))
@@ -214,3 +215,16 @@
 (defn is-unit-current-side? "checks if the current selected unit is the same side as is playing now"
   []
   (and @selected-unit (= (get-in @units [@selected-unit :side]) ((get-current-turn) 1))))
+
+(defn save-game
+  "saves the current data for the game into a save file"
+  [filename]
+  (pst/save-game :map @game-map :units @units :unit-locs @units-by-loc :turn [:allies 0]))
+
+(defn load-game
+  "loads the data from a save file"
+  [filename]
+  (let [{ load-map :map load-units :units  load-unit-locs :unit-locs load-turn :turn} (pst/load-game)]
+    (reset! game-map load-map)
+    (reset! units load-units)
+    (reset! units-by-loc load-unit-locs)))

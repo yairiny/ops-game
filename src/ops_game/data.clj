@@ -224,7 +224,7 @@
 (defn load-game
   "loads the data from a save file"
   [filename]
-  (let [{ load-map :map load-units :units  load-unit-locs :unit-locs load-turn :turn} (pst/load-game)]
+  (let [{ load-map :map load-units :units  load-unit-locs :unit-locs load-turn :turn} (pst/load-game filename)]
     (reset! game-map load-map)
     (reset! units load-units)
     (reset! units-by-loc load-unit-locs)))

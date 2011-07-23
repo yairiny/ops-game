@@ -78,8 +78,8 @@
   "loads the game" []
   (pause-draw true)
   (snl/show-load-dialog nifty
-                        (fn [ok?]
-                          (when ok? (data/load-game nil))
+                        (fn [filename]
+                          (when filename (data/load-game filename))
                           (pause-draw false))))
 
 (defn- subscribe-event-listeners

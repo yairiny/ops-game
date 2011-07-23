@@ -65,8 +65,11 @@
       <panel id="load-dialog" childLayout="vertical" align="center"
              valign="center" style="nifty-panel"
              width="300px" height="250px">
-        <panel id="load-dialog-list-panel" width="100%" height="*"/>
-        <panel id="load-dialog-button-panel" width="100%" height="50px" childLayout="horizontal">
+        <panel id="load-dialog-list-panel" width="100%" height="*" childLayout="vertical">
+          <control id="load-dialog-list" name="listBox" width="100%" height="100%" displayItems="8"
+                   horizontal="optional" vertical="optional" forceSelection="true"/>
+        </panel>
+        <panel id="load-dialog-button-panel" width="100%" childLayout="horizontal">
           <control id="load-dialog-ok-button" name="button" label="OK"/>
           <control id="load-dialog-cancel-button" name="button"
                    label="Cancel"/>

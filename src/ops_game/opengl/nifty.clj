@@ -11,7 +11,7 @@
            [de.lessvoid.nifty.screen Screen DefaultScreenController]
            [de.lessvoid.nifty.builder ScreenBuilder LayerBuilder PanelBuilder]
            [de.lessvoid.nifty.controls.label.builder LabelBuilder]
-           [de.lessvoid.nifty.controls Label]))
+           [de.lessvoid.nifty.controls Label ListBox]))
 
 (defn destroy "destroys the nifty controller"
   [nifty]
@@ -85,3 +85,14 @@
   {:pre [nifty (string? layer-id)]}
   (.closePopup nifty layer-id))
 
+(defn add-items-to-list
+  "adds the items to a list box with the given id"
+  [nifty popup-id id items]
+  {:pre [nifty (string? popup-id)(string? id) (vector? items)]}
+  (.. nifty (findPopupByName popup-id) (findNiftyControl id ListBox) (addAllItems items)))
+
+(defn get-selected-items
+  "gets the selected items from a list box with the given id"
+  [nifty popup-id id]
+  {:pre [nifty (string? popup-id) (string? id)]}
+  (vec (.. nifty (findPopupByName popup-id) (findNiftyControl id ListBox) (getSelection))))

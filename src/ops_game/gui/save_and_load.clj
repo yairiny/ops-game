@@ -9,20 +9,21 @@
 
 (defn initialise-dialogs
   "initialises the event handlers for the dialogs"
-  [nifty]
-  
-  (nifty/subscribe-event nifty "load-dialog-cancel-button" (fn [_ _] (close-dialog))))
+  [nifty])
 
 (defn show-load-dialog
   "shows the load dialog"
   [nifty callback-fn]
   {:pre [nifty (fn? callback-fn)]}
   (let [id (nifty/show-popup nifty "load-popup")]
+    (nifty/add-items-to-list nifty id "load-dialog-list"
+                             (vec (map #(.getName %) (.. (java.io.File. "./data") (listFiles)))))
     (nifty/subscribe-event nifty "load-dialog-ok-button"
-                         (fn [_ _]
-                           (callback-fn true)
-                           (close-dialog nifty id)))
+                           (fn [_ _]
+                             (println (first (nifty/get-selected-items nifty id "load-dialog-list")))
+                             (callback-fn true)
+                             (close-dialog nifty id)))
     (nifty/subscribe-event nifty "load-dialog-cancel-button"
-                         (fn [_ _]
-                           (callback-fn false)
-                           (close-dialog nifty id)))))
+                           (fn [_ _]
+                             (callback-fn false)
+                             (close-dialog nifty id)))))

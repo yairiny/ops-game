@@ -3,6 +3,7 @@
             [ops-game.opengl.nifty :as nifty]
             [ops-game.data :as data]
             [ops-game.rendering :as rndr]
+            [ops-game.gui.save-and-load :as snl]
             :reload-all))
 
 (def ^{:private true} w 1680)
@@ -13,12 +14,16 @@
 
 (declare nifty)
 
+(def ^{:private true } pause-draw-flag (atom false))
+(defn pause-draw [pause?] (reset! pause-draw-flag pause?))
+
 (defn- draw
   "main drawing function"
   [arg]
-  (let [game-data (data/get-drawing-data)
-        dims {:left 0 :top (- h map-height) :width w :height map-height}]
-    (rndr/draw-game-map game-data dims)))
+  (when-not @pause-draw-flag
+    (let [game-data (data/get-drawing-data)
+          dims {:left 0 :top (- h map-height) :width w :height map-height}]
+      (rndr/draw-game-map game-data dims))))
 
 (defn- handle-unit-movement
   "handles moving the selected unit"
@@ -71,8 +76,11 @@
 
 (defn- load-game
   "loads the game" []
-  (println "loading game")
-  (data/load-game nil))
+  (pause-draw true)
+  (snl/show-load-dialog nifty
+                        (fn [ok?]
+                          (when ok? (data/load-game nil))
+                          (pause-draw false))))
 
 (defn- subscribe-event-listeners
   "subscribes all the gui event listeners"
@@ -93,6 +101,7 @@
     (gl/setup w h full)
     (def nifty (nifty/create))
     (subscribe-event-listeners)
+    (snl/initialise-dialogs nifty)
     (rndr/setup-rendering)
     (gl/start-main-loop :nifty nifty :input-handler-fn #(input-dummy %1 %2 %3) :draw-fn #(draw %) :fps fps)
     (catch Throwable e (.printStackTrace e))

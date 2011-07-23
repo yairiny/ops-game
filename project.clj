@@ -11,7 +11,8 @@
                  [lessvoid/nifty-openal-soundsystem "1.0"]
                  [slick/slick "b274"]]
   :dev-dependencies [[marginalia "0.5.1"]
-                     [clojure-source "1.2.0"]]
+                     [clojure-source "1.2.0"]
+                     [nifty-source "1.3.0"]]
   :repositories {"nifty" "http://nifty-gui.sourceforge.net/nifty-maven-repo"}
   :jvm-opts ["-Djava.library.path=/Users/yair/code/support/opengl/lwjgl-2.7.1/native/macosx"
              "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"])

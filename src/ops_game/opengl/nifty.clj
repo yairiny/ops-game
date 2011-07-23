@@ -69,3 +69,19 @@
                 (reify org.bushe.swing.event.EventTopicSubscriber
                   (onEvent [this topic event]
                     (handler-fn topic event))))))
+
+(defn show-popup 
+  "shows a popup layer"
+  [nifty popup-id] 
+  {:pre [nifty (string? popup-id)]}
+  (let [popup-element (.createPopup nifty popup-id)
+        element-id (.getId popup-element)]
+    (.showPopup nifty (.getCurrentScreen nifty) element-id  nil)
+    element-id))
+
+(defn hide-popup
+  "hides a popup layer"
+  [nifty layer-id]
+  {:pre [nifty (string? layer-id)]}
+  (.closePopup nifty layer-id))
+

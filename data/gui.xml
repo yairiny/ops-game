@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <nifty>
   <screen id="main" controller="de.lessvoid.nifty.screen.DefaultScreenController">
     <layer id="main-layer" backgroundColor="#000f" childLayout="vertical">
@@ -59,11 +60,17 @@
         </panel>
       </panel>
     </layer>
-    <popup id="popup-save" childLayout="center"
-           backgroundColor="#000f">
-      <panel id="save-panel" backgroundColor="#008f" height="250px"
-             width="300px">
-      </panel>
-    </popup>
   </screen>
+  <popup id="load-popup" childLayout="center" backgroundColor="#000a">
+      <panel id="load-dialog" childLayout="vertical" align="center"
+             valign="center" style="nifty-panel"
+             width="300px" height="250px">
+        <panel id="load-dialog-list-panel" width="100%" height="*"/>
+        <panel id="load-dialog-button-panel" width="100%" height="50px" childLayout="horizontal">
+          <control id="load-dialog-ok-button" name="button" label="OK"/>
+          <control id="load-dialog-cancel-button" name="button"
+                   label="Cancel"/>
+        </panel>
+      </panel>
+  </popup>
 </nifty>

@@ -64,7 +64,7 @@
   [{:keys [nifty input-handler-fn draw-fn fps input-handler-fn-arg draw-fn-arg]
     :or {input-handler-fn-arg nil draw-fn-arg nil} :as args}]
   {:pre [nifty (fn? input-handler-fn) (fn? draw-fn) (integer? fps) (> fps 0)]}
-  (when (not @stop-loop)
+  (when (and (not @stop-loop) (not (Display/isCloseRequested)))
     (GL11/glLoadIdentity)
     (GL11/glDisable GL11/GL_TEXTURE_2D)
     (let [input-ret (loop [input-ret input-handler-fn-arg]

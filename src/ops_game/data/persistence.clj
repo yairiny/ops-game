@@ -22,7 +22,7 @@
   "loads the given game save and returns a map with the following parts:
 :map, :units, :unit-locs, :turn"
   [filename]
-  {:pre [ (string? filename) (.endsWith filename ".dat")]}
+  {:pre [(string? filename) (.endsWith filename ".dat")]}
   (with-open [reader (io/reader (str saves-dir-name "/" filename))
               pushback-reader (java.io.PushbackReader. reader)]
     (binding [*in* pushback-reader]
@@ -38,4 +38,6 @@
 (defn get-save-files
   "returns the names of the current save files"
   []
-  (vec (map #(.getName %) (.. (java.io.File. saves-dir-name) (listFiles)))))
+  (vec (map #(.getName %)
+            (.. (java.io.File. saves-dir-name)
+                (listFiles (reify java.io.FilenameFilter (accept [this dir name] (.endsWith name ".dat"))))))))

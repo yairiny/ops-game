@@ -72,7 +72,11 @@
 
 (defn- save-game
   "saves the game" []
-  (data/save-game nil))
+  (pause-draw true)
+  (snl/show-save-dialog nifty
+                        (fn [filename]
+                          (when filename (println filename))
+                          (pause-draw false))))
 
 (defn- load-game
   "loads the game" []
@@ -88,11 +92,11 @@
   (nifty/subscribe-event nifty "next-turn-button"
                          (fn [_ _]
                            (data/next-turn!)
-                           (update-status-panel)))
-  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop)))
-  (nifty/subscribe-event nifty "save-game-button" (fn [_ _] (save-game)))
-  (nifty/subscribe-event nifty "load-game-button" (fn [_ _] (load-game)))
-  )
+                           (update-status-panel))
+                         :button-clicked)
+  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop)) :button-clicked)
+  (nifty/subscribe-event nifty "save-game-button" (fn [_ _] (save-game)) :button-clicked)
+  (nifty/subscribe-event nifty "load-game-button" (fn [_ _] (load-game)) :button-clicked))
 
 (defn initialise-gui
   "Initialises the GUI"

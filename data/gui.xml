@@ -94,4 +94,21 @@
       </panel>
     </panel>
   </popup>
+  <popup id="confirm-popup" childLayout="center"
+         backgroundColor="#000a">
+    <panel id="confirm-dialog" childLayout="vertical" align="center"
+           valign="center" style="nifty-panel" width="300px"
+           height="200px">
+      <panel id="confirm-dialog-message-panel" width="100%"
+             height="150px" childLayout="center">
+        <control id="confirm-dialog-message" name="label" width="100%"
+                 height="100%"/>
+      </panel>
+      <panel id="confirm-dialog-button-panel" width="100%" childLayout="horizontal">
+        <control id="confirm-dialog-ok-button" name="button" label="OK"/>
+        <control id="confirm-dialog-cancel-button" name="button"
+                 label="Cancel"/>
+      </panel>
+    </panel>
+  </popup>
 </nifty>

@@ -94,9 +94,13 @@
   (.closePopup nifty layer-id))
 
 (defn update-label-text "updates the text for a label"
-  [nifty id text]
-  (.. nifty (getCurrentScreen) (findNiftyControl id Label) (setText text)))
+  ([nifty popup-id control-id text]
+     (let [screen (if popup-id (.findPopupByName nifty popup-id) (.getCurrentScreen nifty))]
+       (.. screen (findNiftyControl control-id Label) (setText text))))
+  ([nifty control-id text]
+     (update-label-text nifty nil control-id text)))
 
+;;TODO update field text function to work on screen as well as popup
 (defn update-field-text "updates the text for a text field"
   [nifty popup-id id text]
   (.. nifty (findPopupByName popup-id) (findNiftyControl id TextField) (setText text)))

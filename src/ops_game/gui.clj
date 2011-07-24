@@ -86,6 +86,15 @@
                           (when filename (data/load-game filename))
                           (pause-draw false))))
 
+(defn exit-game 
+  "exits the game after confirming with the user"
+  []
+  (pause-draw true)
+  (snl/show-confirm-dialog nifty "Are you sure you want to exit?"
+                           (fn [ok?]
+                             (when ok? (gl/stop-main-loop))
+                             (pause-draw false))))
+
 (defn- subscribe-event-listeners
   "subscribes all the gui event listeners"
   []
@@ -94,7 +103,7 @@
                            (data/next-turn!)
                            (update-status-panel))
                          :button-clicked)
-  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (gl/stop-main-loop)) :button-clicked)
+  (nifty/subscribe-event nifty "exit-button" (fn [_ _] (exit-game)) :button-clicked)
   (nifty/subscribe-event nifty "save-game-button" (fn [_ _] (save-game)) :button-clicked)
   (nifty/subscribe-event nifty "load-game-button" (fn [_ _] (load-game)) :button-clicked))
 

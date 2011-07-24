@@ -2,15 +2,16 @@
   (:require [ops-game.opengl.nifty :as nifty]
             [ops-game.data.persistence :as pst]))
 
-(def ^{:private true :doc "holds state for the UI"} ui-state
-  (atom {:dialog-id nil :callback-fn nil}))
-
 (defn- close-dialog "closes the given dialog"
   [nifty dialog-id] (.closePopup nifty dialog-id))
 
 (defn initialise-dialogs
   "initialises the event handlers for the dialogs"
   [nifty])
+
+;;TODO use a macro to commonify the idiom of calling the callback-fn
+;;with different values based on which button is clicked and then
+;;closing the dialog
 
 (defn show-load-dialog
   "shows the load dialog"
@@ -48,5 +49,22 @@
     (nifty/subscribe-event nifty "save-dialog-cancel-button"
                            (fn [_ _]
                              (callback-fn nil)
+                             (close-dialog nifty id))
+                           :button-clicked)))
+
+(defn show-confirm-dialog 
+  "shows a confirmation dialog with a message"
+  [nifty message callback-fn] 
+  {:pre [nifty (string? message) (fn? callback-fn)]}
+  (let [id (nifty/show-popup nifty "confirm-popup")]
+    (nifty/update-label-text nifty id "confirm-dialog-message" message)
+    (nifty/subscribe-event nifty "confirm-dialog-ok-button"
+                           (fn [_ _]
+                             (callback-fn true)
+                             (close-dialog nifty id))
+                           :button-clicked)
+    (nifty/subscribe-event nifty "confirm-dialog-cancel-button"
+                           (fn [_ _]
+                             (callback-fn false)
                              (close-dialog nifty id))
                            :button-clicked)))

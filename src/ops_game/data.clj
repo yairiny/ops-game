@@ -2,8 +2,11 @@
   (:use ops-game.data.unit-dsl)
   (:require [ops-game.data.persistence :as pst]))
 
+(def ^{:private true :doc "basic seq of turns"} turns-seq
+  (for [t (range) s [:allies :axis]] [t s]))
+
 (def ^{:private true :doc "the turns left sequence"}
-  turns (atom (for [t (range) s [:allies :axis]] [t s])))
+  turns (atom turns-seq))
 
 (def ^{:private true
        :doc "the terrain game info"}
@@ -219,12 +222,13 @@
 (defn save-game
   "saves the current data for the game into a save file"
   [filename]
-  (pst/save-game :map @game-map :units @units :unit-locs @units-by-loc :turn [:allies 0]))
+  (pst/save-game filename :map @game-map :units @units :unit-locs @units-by-loc :turn (get-current-turn)))
 
 (defn load-game
   "loads the data from a save file"
   [filename]
-  (let [{ load-map :map load-units :units  load-unit-locs :unit-locs load-turn :turn} (pst/load-game filename)]
+  (let [{load-map :map load-units :units  load-unit-locs :unit-locs load-turn :turn} (pst/load-game filename)]
     (reset! game-map load-map)
     (reset! units load-units)
+    (reset! turns (drop-while #(not= load-turn %) turns-seq))
     (reset! units-by-loc load-unit-locs)))

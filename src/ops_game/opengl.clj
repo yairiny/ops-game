@@ -59,6 +59,12 @@
   {:mouse true :x (Mouse/getEventX) :y (- screen-height (Mouse/getEventY)) :wheel (Mouse/getEventDWheel)
    :button (Mouse/getEventButton) :down (Mouse/getEventButtonState)})
 
+(defn- create-keyboard-event
+  "creates a keyboard event description map"
+  []
+  {:keyboard true :key (Keyboard/getEventKey) :char (Keyboard/getEventCharacter)
+   :pressed (Keyboard/getEventKeyState)})
+
 (defn- start-main-loop*
   "implementation of the main loop function"
   [{:keys [nifty input-handler-fn draw-fn fps input-handler-fn-arg draw-fn-arg]
@@ -77,7 +83,9 @@
           input-ret (loop [input-ret input-handler-fn-arg]
                       (Keyboard/poll)
                       (if (Keyboard/next)
-                        (recur (input-handler-fn true false input-ret))
+                        (do
+                          (nifty/report-event (create-keyboard-event))
+                          (recur (input-handler-fn true false input-ret)))
                         input-ret))
           draw-ret (draw-fn draw-fn-arg)]      
       (Display/sync fps)

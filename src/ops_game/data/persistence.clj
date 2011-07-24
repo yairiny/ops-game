@@ -7,11 +7,11 @@
 (defn save-game 
   "saves the given game data, requires the following data parts:
 :map, :units, :unit-locs, :turn"
-  [& parts] 
-  {:pre [(seq? parts) (even? (count parts))]}
+  [filename & parts] 
+  {:pre [(seq? parts) (even? (count parts)) (.endsWith filename ".dat")]}
   (let [{:keys [map units unit-locs turn]} (apply hash-map parts)]
     (assert (and map units unit-locs turn))
-    (with-open [writer (io/writer "./data/save.dat")]
+    (with-open [writer (io/writer (str saves-dir-name "/" filename))]
       (binding [*out* writer]
         (pr map unit-locs turn)
         (pr (clojure.core/map

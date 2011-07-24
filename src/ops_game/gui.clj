@@ -75,7 +75,7 @@
   (pause-draw true)
   (snl/show-save-dialog nifty
                         (fn [filename]
-                          (when filename (println filename))
+                          (when filename (data/save-game filename))
                           (pause-draw false))))
 
 (defn- load-game

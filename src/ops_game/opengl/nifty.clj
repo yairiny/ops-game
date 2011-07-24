@@ -6,6 +6,7 @@
            [de.lessvoid.nifty.tools TimeProvider]
            [de.lessvoid.nifty.renderer.lwjgl.render LwjglRenderDevice]
            [de.lessvoid.nifty.spi.input InputSystem]
+           [de.lessvoid.nifty.renderer.lwjgl.input LwjglKeyboardInputEventCreator]
            [de.lessvoid.nifty.nulldevice NullSoundDevice]
            [de.lessvoid.nifty.sound.openal OpenALSoundDevice]
            [de.lessvoid.nifty.screen Screen DefaultScreenController]
@@ -36,14 +37,19 @@
      (alter event-queue pop)
      ret)))
 
+(def ^{:private true } keyboard-event-creator
+  (LwjglKeyboardInputEventCreator.))
+
 (defn- input-system "creates a merged input system implementation"
   []
   (reify InputSystem
     (forwardEvents [this event-consumer]
       (doseq [event (take-while identity (repeatedly get-next-event))]
-        (when (:mouse event)
+        (if (:mouse event)
           (let [{:keys [x y wheel button down]} event]
-            (.processMouseEvent event-consumer x y wheel button down)))))
+            (.processMouseEvent event-consumer x y wheel button down))
+          (let [{:keys [key char pressed]} event]
+            (.processKeyboardEvent event-consumer (.createEvent keyboard-event-creator key char pressed))))))
     (setMousePosition [this x y])))
 
 (defn create "creates the nifty controller and gives it the initial screen"

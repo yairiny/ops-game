@@ -2,6 +2,7 @@
   (:require [ops-game.opengl :as gl]
             [ops-game.opengl.nifty :as nifty]
             [ops-game.data :as data]
+            [ops-game.hex-helper :as hhlp]
             [ops-game.rendering :as rndr]
             [ops-game.gui.save-and-load :as snl]
             :reload-all))
@@ -17,11 +18,16 @@
 (def ^{:private true } pause-draw-flag (atom false))
 (defn pause-draw [pause?] (reset! pause-draw-flag pause?))
 
+(def ^{:private true :doc "the movement map for the selected unit"}
+  selected-unit-move-map
+  (atom nil))
+
 (defn- draw
   "main drawing function"
   [arg]
   (when-not @pause-draw-flag
     (let [game-data (data/get-drawing-data)
+          game-data (assoc game-data :move-map @selected-unit-move-map)
           dims {:left 0 :top (- h map-height) :width w :height map-height}]
       (rndr/draw-game-map game-data dims))))
 
@@ -56,7 +62,16 @@
         (nifty/update-label-text "unit-strength" "")
         (nifty/update-label-text "unit-type" "")))))
 
-(defn- input-dummy [k m a]
+(defn- update-unit-move-map
+  []
+  (let [u (:selected-unit (data/get-status-data))]
+    (if u
+      (let [[_ potential] (:movement u)
+            hex (:location u)]
+        (reset! selected-unit-move-map (hhlp/reachable-hexes hex potential data/get-move-cost)))
+      (reset! selected-unit-move-map nil))))
+
+(defn- input-handler [k m a]
   (when m
     (let [[x y] (gl/get-mouse-pos)
           y (- h y)
@@ -64,9 +79,11 @@
       (when hex
         (data/update-hex-under-cursor! hex)
         (when (:left (gl/get-mouse-buttons))
-          (data/update-unit-selected! hex))
+          (data/update-unit-selected! hex)
+          (update-unit-move-map))
         (when (:right (gl/get-mouse-buttons))
-          (handle-unit-movement hex))
+          (handle-unit-movement hex)
+          (update-unit-move-map))
         (update-status-panel))))
   a)
 
@@ -116,7 +133,7 @@
     (subscribe-event-listeners)
     (snl/initialise-dialogs nifty)
     (rndr/setup-rendering)
-    (gl/start-main-loop :nifty nifty :input-handler-fn #(input-dummy %1 %2 %3) :draw-fn #(draw %) :fps fps)
+    (gl/start-main-loop :nifty nifty :input-handler-fn #(input-handler %1 %2 %3) :draw-fn #(draw %) :fps fps)
     (catch Throwable e (.printStackTrace e))
     (finally
      (gl/teardown)

@@ -180,9 +180,15 @@
                                        (first (get-in locs-map [from :units])))
                              (assoc-in [to :top] unit)))))
 
+(defn get-move-cost
+  "gets the movement cost of a single hex"
+  [loc]
+  (let [loc (get-in @game-map loc)]
+    (if loc (-> loc terrain-info :cost)
+        Integer/MAX_VALUE)))
+
 (defn- calc-move-cost
-  [from to]
-  (-> (get-in @game-map to) terrain-info :cost))
+  [from to] (get-move-cost to))
 
 (defn- can-unit-move?
   [unit from to]
@@ -232,3 +238,5 @@
     (reset! units load-units)
     (reset! turns (drop-while #(not= load-turn %) turns-seq))
     (reset! units-by-loc load-unit-locs)))
+
+

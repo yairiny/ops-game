@@ -42,13 +42,14 @@
   (def pip-list (g/display-list-generate draw-pip))
   (def font (g/create-font "Arial" true 8)))
 
-(defn- draw-hexes [map hovered]
+(defn- draw-hexes [map hovered move-map]
   "draws the hexes"
   (doseq [[cells row] (clojure.core/map #(vector %1 %2) map (range))]
     (g/with-pushed-matrix
       (doseq [[cell col] (clojure.core/map #(vector %1 %2) cells (range))]
-        (let [hex-colour (terrain-colour cell)]
-          (apply g/colour (conj hex-colour (if (= [row col] hovered) 1.0 0.75))))
+        (let [hex-colour (terrain-colour cell)
+              highlight-hex (or (= [row col] hovered) (and move-map (move-map [row col])))]
+          (apply g/colour (conj hex-colour (if highlight-hex 1.0 0.75))))
         (g/display-list-call hex-list)
         (g/draw-text font 0 0 (str row "," col))
         (g/translate a 0)))
@@ -99,7 +100,7 @@
 
 (defn draw-game-map
   "this is the main function for drawing the game map"
-  [{:keys [map hovered units locs selected-unit] :as game-data}
+  [{:keys [map hovered units locs selected-unit move-map] :as game-data}
    {:keys [left top width height] :as dims}]
   {:pre [(map? game-data) (map? dims) (every? #(>= % 0) [left top width height])]}
 
@@ -110,7 +111,7 @@
     (g/clear-colour-buffer)
     (g/translate r s) ;;basic offset of the mid point of the 0,0 hex
     (g/with-pushed-matrix
-      (draw-hexes map hovered))
+      (draw-hexes map hovered move-map))
     (g/with-pushed-matrix
       (draw-units locs units selected-unit))))
 
